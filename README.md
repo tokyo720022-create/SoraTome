@@ -1,8 +1,8 @@
-# Tsuzuki (続き)
+# SoraTome (続き)
 
 A modern, extensible manga reader built from scratch, with a sandboxed plugin system and an advanced panel-aware reader.
 
-> *Tsuzuki* means "to be continued" in Japanese.
+> *SoraTome* means " sky stories " in Japanese.
 
 **Status:** early development. Nothing is usable yet. See the [roadmap](docs/ROADMAP.md).
 
@@ -24,7 +24,7 @@ See [Architecture](docs/ARCHITECTURE.md).
 
 ## Content policy
 
-Tsuzuki does not host, distribute, or endorse any content. It ships with **no built-in sources and no default plugin repositories**. Users are responsible for the content they read and the plugins they install, and for complying with the laws of their country.
+SoraTome does not host, distribute, or endorse any content. It ships with **no built-in sources and no default plugin repositories**. Users are responsible for the content they read and the plugins they install, and for complying with the laws of their country.
 
 ## Contributing
 

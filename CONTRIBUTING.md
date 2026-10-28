@@ -1,4 +1,4 @@
-# Contributing to Tsuzuki
+# Contributing to SoraTome
 
 Thanks for your interest! The project is at a very early stage, so please open an issue to discuss larger changes before starting work.
 

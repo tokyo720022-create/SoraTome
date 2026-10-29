@@ -41,7 +41,32 @@ jobs:
           gradle-version: '8.11.1'
 
       - name: Build debug APK
-        run: gradle :app:assembleDebug --stacktrace
+        shell: bash
+        run: gradle :app:assembleDebug --stacktrace 2>&1 | tee build.log
+
+      # On failure, copy the important lines into an annotation and the run
+      # summary so the error is visible without scrolling through the log.
+      - name: Summarize errors
+        if: failure()
+        shell: bash
+        run: |
+          {
+            grep -E '^e: ' build.log | sort -u | head -n 10
+            awk '/^\* What went wrong:/{f=1;next} /^\* Try:/{f=0} f' build.log | head -n 20
+            grep -E '^Caused by: ' build.log | sort -u | head -n 5
+          } > errors.txt || true
+          [ -s errors.txt ] || tail -n 30 build.log > errors.txt
+          msg=$(head -c 3500 errors.txt | sed ':a;N;$!ba;s/%/%25/g;s/\r//g;s/\n/%0A/g')
+          echo "::error title=Gradle build failed::${msg}"
+          { echo '### Build errors'; echo '```'; cat errors.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

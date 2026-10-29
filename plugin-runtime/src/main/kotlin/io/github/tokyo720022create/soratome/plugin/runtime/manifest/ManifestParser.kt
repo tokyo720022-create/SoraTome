@@ -1,9 +1,10 @@
-package io.github.tokyo720022create.soratome.plugin.runtime
+package io.github.tokyo720022create.soratome.plugin.runtime.manifest
 
-import io.github.tokyo720022create.soratome.plugin.api.PLUGIN_API_VERSION
-import io.github.tokyo720022create.soratome.plugin.api.PluginManifest
-import io.github.tokyo720022create.soratome.plugin.api.PluginPermissions
-import io.github.tokyo720022create.soratome.plugin.api.PluginType
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PLUGIN_API_VERSION
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginManifest
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginPermissions
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginType
+import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginException
 import org.json.JSONException
 import org.json.JSONObject
 

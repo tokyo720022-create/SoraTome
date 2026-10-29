@@ -1,7 +1,9 @@
-package io.github.tokyo720022create.soratome.plugin.runtime
+package io.github.tokyo720022create.soratome.plugin.runtime.loader
 
 import android.content.Context
-import io.github.tokyo720022create.soratome.plugin.api.SourcePlugin
+import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
+import io.github.tokyo720022create.soratome.plugin.runtime.manifest.ManifestParser
+import io.github.tokyo720022create.soratome.plugin.runtime.script.ScriptSourcePlugin
 
 /**
  * Loads plugins that are packaged as assets, one folder per plugin:

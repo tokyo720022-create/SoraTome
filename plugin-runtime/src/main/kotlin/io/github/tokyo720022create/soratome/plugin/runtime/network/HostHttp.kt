@@ -1,5 +1,6 @@
-package io.github.tokyo720022create.soratome.plugin.runtime
+package io.github.tokyo720022create.soratome.plugin.runtime.network
 
+import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginException
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection

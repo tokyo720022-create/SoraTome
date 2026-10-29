@@ -1,18 +1,22 @@
-package io.github.tokyo720022create.soratome.plugin.runtime
+package io.github.tokyo720022create.soratome.plugin.runtime.script
 
 import com.dokar.quickjs.QuickJs
 import com.dokar.quickjs.binding.asyncFunction
 import com.dokar.quickjs.binding.define
 import com.dokar.quickjs.binding.function
 import com.dokar.quickjs.evaluate
-import io.github.tokyo720022create.soratome.plugin.api.ChapterInfo
-import io.github.tokyo720022create.soratome.plugin.api.PageInfo
-import io.github.tokyo720022create.soratome.plugin.api.PluginManifest
-import io.github.tokyo720022create.soratome.plugin.api.PluginType
-import io.github.tokyo720022create.soratome.plugin.api.SearchResult
-import io.github.tokyo720022create.soratome.plugin.api.SeriesDetails
-import io.github.tokyo720022create.soratome.plugin.api.SeriesSummary
-import io.github.tokyo720022create.soratome.plugin.api.SourcePlugin
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginManifest
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginType
+import io.github.tokyo720022create.soratome.plugin.api.source.ChapterInfo
+import io.github.tokyo720022create.soratome.plugin.api.source.PageInfo
+import io.github.tokyo720022create.soratome.plugin.api.source.SearchResult
+import io.github.tokyo720022create.soratome.plugin.api.source.SeriesDetails
+import io.github.tokyo720022create.soratome.plugin.api.source.SeriesSummary
+import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
+import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginException
+import io.github.tokyo720022create.soratome.plugin.runtime.manifest.ManifestParser
+import io.github.tokyo720022create.soratome.plugin.runtime.network.HostHttp
+import io.github.tokyo720022create.soratome.plugin.runtime.network.NetworkPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -149,8 +153,3 @@ class ScriptSourcePlugin private constructor(
         }
     }
 }
-
-private fun JSONObject.stringOrNull(key: String): String? = if (isNull(key)) null else getString(key)
-
-private inline fun <T> JSONArray.mapObjects(transform: (JSONObject) -> T): List<T> =
-    List(length()) { index -> transform(getJSONObject(index)) }

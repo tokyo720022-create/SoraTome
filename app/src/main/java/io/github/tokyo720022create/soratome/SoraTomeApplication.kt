@@ -2,8 +2,8 @@ package io.github.tokyo720022create.soratome
 
 import android.app.Application
 import android.util.Log
-import io.github.tokyo720022create.soratome.plugin.api.SourcePlugin
-import io.github.tokyo720022create.soratome.plugin.runtime.AssetPluginLoader
+import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
+import io.github.tokyo720022create.soratome.plugin.runtime.loader.AssetPluginLoader
 
 class SoraTomeApplication : Application() {
 

@@ -1,5 +1,6 @@
-package io.github.tokyo720022create.soratome.plugin.runtime
+package io.github.tokyo720022create.soratome.plugin.runtime.network
 
+import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginSecurityException
 import java.net.MalformedURLException
 import java.net.URL
 

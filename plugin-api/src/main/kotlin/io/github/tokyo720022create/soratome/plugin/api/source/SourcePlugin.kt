@@ -1,4 +1,6 @@
-package io.github.tokyo720022create.soratome.plugin.api
+package io.github.tokyo720022create.soratome.plugin.api.source
+
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginManifest
 
 /** Contract every source plugin fulfils, regardless of the runtime that executes it. */
 interface SourcePlugin {

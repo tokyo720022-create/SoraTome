@@ -1,4 +1,4 @@
-package io.github.tokyo720022create.soratome
+package io.github.tokyo720022create.soratome.feature.browse
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -26,8 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import io.github.tokyo720022create.soratome.plugin.api.SeriesSummary
-import io.github.tokyo720022create.soratome.plugin.api.SourcePlugin
+import io.github.tokyo720022create.soratome.SoraTomeApplication
+import io.github.tokyo720022create.soratome.plugin.api.source.SeriesSummary
+import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 

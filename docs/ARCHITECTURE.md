@@ -24,11 +24,17 @@ Root: `io.github.tokyo720022create.soratome`
 | (root) | `MainActivity`, `SoraTomeApplication` |
 | `navigation` | `Routes`, `TopLevelDestination`, `SoraTomeNavHost`, `SoraTomeBottomBar` |
 | `ui` | `SoraTomeApp` (root composable), `AppVersion` |
-| `ui.components` | Shared composables, e.g. `PlaceholderScreen` |
+| `ui.components` | Shared composables: `PlaceholderScreen`, `ScreenScaffold`, `RemoteImage` |
+| `data.image` | `PageImageLoader`, `ImageLoadReporter`, `PageLoadException` |
+| `data.reader` | `ReaderPreferences`, `ReadingProgressStore` |
+| `domain.reader` | `ReadingMode`, `ImageQuality` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
 | `feature.library` | Library tab |
 | `feature.history` | History tab |
-| `feature.browse` | Browse tab (sources and search) |
+| `feature.browse` | Browse tab: plugin picker, search, results with covers; `BrowseState` |
+| `feature.browse.details` | Series details and chapter list |
+| `feature.reader` | Chapter reader: `ReaderScreen`, `ReaderSession` |
+| `feature.reader.components` | `PagedReader`, `VerticalReader`, `PageImage`, `ReaderTopBar`, `ReaderBottomBar`, `ReaderOptionGroups` |
 | `feature.profile` | Profile tab: account header, AniList and MyAnimeList sync cards, in-app stats, link to Settings |
 | `feature.profile.components` | `ProfileHeaderCard`, `TrackerSyncCard`, `AppStatsCard` |
 | `feature.settings` | Settings list: `SettingsScreen`, `SettingsCategory` |
@@ -37,14 +43,14 @@ Root: `io.github.tokyo720022create.soratome`
 
 ## Navigation
 
-Bottom bar tabs: **Library, History, Browse, Profile**. Settings is not a tab: it opens from the Profile tab (`profile` -> `settings` -> `settings/<category>`), and Profile stays highlighted while Settings is open.
+Bottom bar tabs: **Library, History, Browse, Profile**. Browse opens a series (`browse/details`), which opens the full-screen reader (`reader`, no tab bar). Settings is not a tab: it opens from the Profile tab (`profile` -> `settings` -> `settings/<category>`), and Profile stays highlighted while Settings is open.
 
 ## `plugin-api` packages
 
 | Package | Contents |
 |---|---|
 | `plugin.api.manifest` | `PluginManifest`, `PluginPermissions`, `PluginType`, `PLUGIN_API_VERSION` |
-| `plugin.api.source` | `SourcePlugin` and its models: `SeriesSummary`, `SearchResult`, `SeriesDetails`, `ChapterInfo`, `PageInfo` |
+| `plugin.api.source` | `SourcePlugin` and its models: `SeriesSummary`, `SearchResult`, `SeriesDetails`, `ChapterInfo`, `PageInfo` (with optional data-saver URL and load-report URL) |
 
 ## `plugin-runtime` packages
 
@@ -64,7 +70,8 @@ Bottom bar tabs: **Library, History, Browse, Profile**. Settings is not a tab: i
 |---|---|
 | Tracking | AniList and MyAnimeList account rows (sign-in not implemented yet) |
 | About | Version and license |
-| Appearance, Library, Reader, Downloads, Browse, Data and storage | Placeholder, no options yet |
+| Reader | Reading mode and image quality |
+| Appearance, Library, Downloads, Browse, Data and storage | Placeholder, no options yet |
 
 Not included on purpose: Security and privacy, Advanced.
 

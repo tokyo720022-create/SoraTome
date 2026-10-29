@@ -6,6 +6,9 @@ object Routes {
     const val BROWSE = "browse"
     const val PROFILE = "profile"
 
+    const val SERIES_DETAILS = "browse/details"
+    const val READER = "reader"
+
     const val SETTINGS = "settings"
     const val SETTINGS_APPEARANCE = "settings/appearance"
     const val SETTINGS_LIBRARY = "settings/library"

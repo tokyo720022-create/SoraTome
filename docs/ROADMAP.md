@@ -16,9 +16,13 @@ Rough milestones. Scope and order may change. The six signature features are des
 - [ ] Settings content for Appearance and Library
 
 ## M2: Reader basics
-- [ ] Paged reader (LTR/RTL) and continuous webtoon reader
-- [ ] Zoom, gestures, page preloading and caching
-- [ ] Reading progress and History
+See [READER.md](READER.md).
+- [x] Paged reader (LTR/RTL) and continuous vertical reader
+- [x] Page slider, tap zones, previous/next chapter, preloading
+- [x] Reading progress (resume, finished chapters)
+- [ ] Zoom and double-tap zoom
+- [ ] Reader options from Tokyo Manga Lab: auto read, rotation, status bar, time and battery, volume keys
+- [ ] History tab fed by reading progress
 
 ## M3: Plugin runtime
 - [x] Plugin manifest and permission model

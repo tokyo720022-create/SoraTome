@@ -78,7 +78,12 @@ class ScriptSourcePlugin private constructor(
 
     override suspend fun getPages(chapterId: String): List<PageInfo> {
         return JSONArray(call("getPages", chapterId)).mapObjects { obj ->
-            PageInfo(index = obj.getInt("index"), url = obj.getString("url"))
+            PageInfo(
+                index = obj.getInt("index"),
+                url = obj.getString("url"),
+                lowQualityUrl = obj.stringOrNull("lowQualityUrl"),
+                reportUrl = obj.stringOrNull("reportUrl"),
+            )
         }
     }
 

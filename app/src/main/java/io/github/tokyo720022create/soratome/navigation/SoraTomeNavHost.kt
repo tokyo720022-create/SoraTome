@@ -6,9 +6,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.tokyo720022create.soratome.feature.browse.BrowseScreen
+import io.github.tokyo720022create.soratome.feature.browse.details.SeriesDetailsScreen
 import io.github.tokyo720022create.soratome.feature.history.HistoryScreen
 import io.github.tokyo720022create.soratome.feature.library.LibraryScreen
 import io.github.tokyo720022create.soratome.feature.profile.ProfileScreen
+import io.github.tokyo720022create.soratome.feature.reader.ReaderScreen
 import io.github.tokyo720022create.soratome.feature.settings.SettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.about.AboutSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.appearance.AppearanceSettingsScreen
@@ -34,7 +36,16 @@ fun SoraTomeNavHost(
         // Tabs
         composable(Routes.LIBRARY) { LibraryScreen() }
         composable(Routes.HISTORY) { HistoryScreen() }
-        composable(Routes.BROWSE) { BrowseScreen() }
+        composable(Routes.BROWSE) {
+            BrowseScreen(onOpenSeries = { navController.navigate(Routes.SERIES_DETAILS) })
+        }
+        composable(Routes.SERIES_DETAILS) {
+            SeriesDetailsScreen(
+                onBack = goBack,
+                onOpenReader = { navController.navigate(Routes.READER) },
+            )
+        }
+        composable(Routes.READER) { ReaderScreen(onBack = goBack) }
         composable(Routes.PROFILE) {
             ProfileScreen(
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },

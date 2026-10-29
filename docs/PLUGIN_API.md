@@ -58,7 +58,9 @@ globalThis.plugin = {
     // returns [{ id, name, number, date }]   (date = epoch millis or null)
   },
   async getPages(chapterId) {
-    // returns [{ index, url }]
+    // returns [{ index, url, lowQualityUrl?, reportUrl? }]
+    // lowQualityUrl: smaller "data saver" image, optional
+    // reportUrl: where the app reports each image load (success, size, time), optional
   },
 };
 ```

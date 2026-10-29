@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.github.tokyo720022create.soratome.navigation.Routes
 import io.github.tokyo720022create.soratome.navigation.SoraTomeBottomBar
 import io.github.tokyo720022create.soratome.navigation.SoraTomeNavHost
 
@@ -18,16 +19,19 @@ fun SoraTomeApp() {
 
     Scaffold(
         bottomBar = {
-            SoraTomeBottomBar(
-                currentRoute = currentRoute,
-                onNavigate = { destination ->
-                    navController.navigate(destination.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-            )
+            // The reader is full screen, so it hides the tab bar.
+            if (currentRoute != Routes.READER) {
+                SoraTomeBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { destination ->
+                        navController.navigate(destination.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         SoraTomeNavHost(

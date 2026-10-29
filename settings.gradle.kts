@@ -18,3 +18,4 @@ rootProject.name = "SoraTome"
 
 include(":app")
 include(":plugin-api")
+include(":plugin-runtime")

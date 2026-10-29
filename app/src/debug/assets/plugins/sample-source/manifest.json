@@ -1,0 +1,13 @@
+{
+  "id": "org.soratome.sample-source",
+  "name": "Sample Source (demo)",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "type": "source",
+  "entry": "main.js",
+  "language": "en",
+  "permissions": {
+    "network": [],
+    "storage": false
+  }
+}

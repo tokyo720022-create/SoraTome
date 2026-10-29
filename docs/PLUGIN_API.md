@@ -1,6 +1,6 @@
-# Plugin API (draft v0)
+# Plugin API (draft v1)
 
-Plugins are packaged scripts that run in a sandbox. They cannot access the filesystem or network except through host functions, and only within the permissions they declare. The user sees and approves requested permissions at install time.
+Plugins are packaged scripts that run in a QuickJS sandbox. They have no direct access to the filesystem or network. Everything goes through the `host` object, within the permissions the plugin declares.
 
 ## Package layout
 
@@ -9,6 +9,8 @@ my-plugin/
   manifest.json
   main.js
 ```
+
+Bundled plugins live in `assets/plugins/<folder>/`. A sample plugin is included in **debug builds only** (`app/src/debug/assets/plugins/sample-source`). Release builds ship with no plugins.
 
 ## manifest.json
 
@@ -28,56 +30,63 @@ my-plugin/
 }
 ```
 
+`apiVersion` must match the version the app supports. `entry` must be a relative path without `..`.
+
 ## Plugin types
 
-| Type | Purpose |
-|---|---|
-| `source` | Provide series, chapters, and pages |
-| `tracker` | Sync reading progress with an external service |
-| `translator` | Translate OCR text |
-| `metadata` | Supply covers, descriptions, tags |
-| `filter` | Process page images |
+| Type | Status | Purpose |
+|---|---|---|
+| `source` | Implemented | Provide series, chapters, and pages |
+| `tracker` | Planned | Sync reading progress with an external service |
+| `translator` | Planned | Translate OCR text |
+| `metadata` | Planned | Supply covers, descriptions, tags |
+| `filter` | Planned | Process page images |
 
-## Source interface (JavaScript)
+## Source plugins (JavaScript)
+
+A source plugin is a classic script (not an ES module) that defines `globalThis.plugin`. All four functions are async and must return plain JSON-compatible values.
 
 ```js
-// main.js
-export async function search(query, page) {
-  // returns { items: [{ id, title, cover }], hasNext: boolean }
-}
-
-export async function getSeries(id) {
-  // returns { id, title, description, cover, tags: [] }
-}
-
-export async function getChapters(seriesId) {
-  // returns [{ id, name, number, date }]
-}
-
-export async function getPages(chapterId) {
-  // returns [{ index, url }]
-}
+globalThis.plugin = {
+  async search(query, page) {
+    // returns { items: [{ id, title, cover }], hasNext: boolean }
+  },
+  async getSeries(id) {
+    // returns { id, title, description, cover, tags: [] }
+  },
+  async getChapters(seriesId) {
+    // returns [{ id, name, number, date }]   (date = epoch millis or null)
+  },
+  async getPages(chapterId) {
+    // returns [{ index, url }]
+  },
+};
 ```
 
 ## Host functions
 
 | Function | Notes |
 |---|---|
-| `host.http.get(url, options)` | Allowed only for domains in `permissions.network` |
-| `host.http.post(url, body, options)` | Same restriction |
-| `host.html.parse(html)` | Returns a queryable document (CSS selectors) |
 | `host.log(message)` | Debug logging |
-| `host.prefs.get/set(key, value)` | Per-plugin settings, only if `permissions.storage` is true |
+| `await host.http.get(url)` | Returns the response body as a string |
+
+`host.http.get` rules:
+
+- https only
+- the host must match a domain in `permissions.network` (subdomains included)
+- redirects are followed manually and each hop is checked again
+- 5 MB response limit, 15 s connect and 20 s read timeouts
+
+Not available yet: `host.http.post`, HTML parsing helpers, per-plugin settings storage.
 
 ## Security model
 
+- Scripts run in a separate QuickJS instance per plugin, with a 60 s evaluation limit.
 - No `eval` of remote code and no dynamic imports from the network.
-- Plugins are versioned, and repositories can sign their index.
-- Execution time and memory limits per call.
 - The app ships with no default repositories. Users add repositories themselves.
+- Planned: signed repository indexes, install-time permission prompts, memory limits.
 
 ## Open questions
 
-- QuickJS vs WASM as the primary runtime
 - Declarative (JSON and CSS selector) sources for simple sites
 - Repository index format and signing scheme

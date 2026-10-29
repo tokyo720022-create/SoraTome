@@ -69,7 +69,7 @@ fun SoraTomeApp() {
                 Placeholder("Library", "Your series will appear here.")
             }
             composable(Destination.Browse.route) {
-                Placeholder("Browse", "Plugins and sources will appear here.")
+                BrowseScreen()
             }
             composable(Destination.Settings.route) {
                 Placeholder("Settings", "App settings will appear here.")

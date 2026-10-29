@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "io.github.tokyo720022create.soratome.plugin.runtime"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

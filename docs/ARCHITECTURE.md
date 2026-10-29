@@ -23,15 +23,21 @@ Root: `io.github.tokyo720022create.soratome`
 |---|---|
 | (root) | `MainActivity`, `SoraTomeApplication` |
 | `navigation` | `Routes`, `TopLevelDestination`, `SoraTomeNavHost`, `SoraTomeBottomBar` |
-| `ui` | `SoraTomeApp` (root composable) |
+| `ui` | `SoraTomeApp` (root composable), `AppVersion` |
 | `ui.components` | Shared composables, e.g. `PlaceholderScreen` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
 | `feature.library` | Library tab |
+| `feature.history` | History tab |
 | `feature.browse` | Browse tab (sources and search) |
-| `feature.settings` | Settings home: `SettingsScreen`, `SettingsCategory` |
-| `feature.settings.components` | Shared settings pieces: `SettingsScaffold`, `SettingsSectionHeader` |
-| `feature.settings.tracking` | Tracking & sync settings (AniList, MyAnimeList accounts) |
-| `feature.settings.about` | About screen |
+| `feature.profile` | Profile tab: account header, AniList and MyAnimeList sync cards, in-app stats, link to Settings |
+| `feature.profile.components` | `ProfileHeaderCard`, `TrackerSyncCard`, `AppStatsCard` |
+| `feature.settings` | Settings list: `SettingsScreen`, `SettingsCategory` |
+| `feature.settings.components` | `SettingsScaffold`, `SettingsPlaceholderScreen`, `SettingsSectionHeader` |
+| `feature.settings.<category>` | One screen per category: `appearance`, `library`, `reader`, `downloads`, `tracking`, `browse`, `data`, `about` |
+
+## Navigation
+
+Bottom bar tabs: **Library, History, Browse, Profile**. Settings is not a tab: it opens from the Profile tab (`profile` -> `settings` -> `settings/<category>`), and Profile stays highlighted while Settings is open.
 
 ## `plugin-api` packages
 
@@ -52,22 +58,22 @@ Root: `io.github.tokyo720022create.soratome`
 
 ## Settings
 
-The Settings tab lists categories defined in `SettingsCategory`. A category with a route opens its own screen under `feature.settings.<category>`; one without a route is shown as "Coming soon".
+`SettingsCategory` defines the list shown on the Settings screen. Every category opens its own screen.
 
 | Category | Status |
 |---|---|
-| Tracking & sync | Screen with AniList and MyAnimeList account rows (sign-in not implemented yet) |
+| Tracking | AniList and MyAnimeList account rows (sign-in not implemented yet) |
 | About | Version and license |
-| Appearance, Library, Reader, Sources, Data & storage | Reserved, no screen yet |
+| Appearance, Library, Reader, Downloads, Browse, Data and storage | Placeholder, no options yet |
 
-To add a settings screen:
+Not included on purpose: Security and privacy, Advanced.
+
+To add a settings category:
 
 1. Add a route constant to `Routes`.
-2. Give the matching `SettingsCategory` entry that route.
+2. Add an entry to `SettingsCategory` with that route.
 3. Create `feature/settings/<category>/<Category>SettingsScreen.kt`, using `SettingsScaffold`.
 4. Register it in `SoraTomeNavHost`.
-
-Settings are only added when the feature behind them exists.
 
 To add another tracking service, add an entry to `TrackerService`.
 

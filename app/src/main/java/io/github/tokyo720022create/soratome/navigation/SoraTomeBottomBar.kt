@@ -14,8 +14,9 @@ fun SoraTomeBottomBar(
     NavigationBar {
         TopLevelDestination.entries.forEach { destination ->
             // A tab stays selected while one of its sub-screens (e.g. "settings/about") is open.
-            val selected = currentRoute != null &&
-                (currentRoute == destination.route || currentRoute.startsWith(destination.route + "/"))
+            val selected = currentRoute != null && destination.ownedRoots.any { root ->
+                currentRoute == root || currentRoute.startsWith("$root/")
+            }
             NavigationBarItem(
                 selected = selected,
                 onClick = { onNavigate(destination) },

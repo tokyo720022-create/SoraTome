@@ -2,6 +2,7 @@ name: Unzip and push
 
 # Drop a .zip in the repo root and push it to main.
 # This workflow extracts it into the repo, deletes the zip, and commits the result.
+# If the zip contains a DELETE.txt, the paths listed in it are removed first.
 
 on:
   push:
@@ -57,6 +58,28 @@ jobs:
             # Never copy git internals, macOS junk, or workflow files
             # (the default GITHUB_TOKEN is not allowed to modify .github/workflows)
             rm -rf "$src/.git" "$src/.github/workflows"
+
+            # Optional DELETE.txt: one repo-relative path per line (blank lines and # comments are ignored).
+            # Used when files are moved or renamed. Deletions run before the new files are copied in.
+            if [ -f "$src/DELETE.txt" ]; then
+              while IFS= read -r path || [ -n "$path" ]; do
+                path="${path%$'\r'}"
+                case "$path" in
+                  ''|'#'*) continue ;;
+                  .|./|/*|*..*|.git|.git/*|.github|.github/*)
+                    echo "Skipping unsafe path: $path"
+                    continue
+                    ;;
+                esac
+                if [ -e "$path" ]; then
+                  rm -rf -- "$path"
+                  echo "Deleted: $path"
+                else
+                  echo "Already gone: $path"
+                fi
+              done < "$src/DELETE.txt"
+              rm -f "$src/DELETE.txt"
+            fi
 
             cp -a "$src"/. .
             git rm -q -f -- "$z"

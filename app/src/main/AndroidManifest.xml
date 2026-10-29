@@ -3,9 +3,9 @@
 
     <application
         android:allowBackup="true"
-        android:label="Tsuzuki"
+        android:label="SoraTome"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Tsuzuki">
+        android:theme="@style/Theme.SoraTome">
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "io.github.tokyo720022create.tsuzuki"
+    namespace = "io.github.tokyo720022create.soratome"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "io.github.tokyo720022create.tsuzuki"
+        applicationId = "io.github.tokyo720022create.soratome"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

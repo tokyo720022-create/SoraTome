@@ -1,10 +1,10 @@
-# Building Tsuzuki
+# Building SoraTome
 
 ## With GitHub Actions (no local setup needed)
 
 1. Open the **Actions** tab and select **Build debug APK**.
 2. Click **Run workflow** (it also runs automatically after the unzip workflow).
-3. When the run finishes, download the `tsuzuki-debug-apk` artifact from the run summary.
+3. When the run finishes, download the `soratome-debug-apk` artifact from the run summary.
 4. Unzip it and install `app-debug.apk` on an Android 8.0+ device.
 
 ## Locally

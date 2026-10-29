@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tsuzuki"
+rootProject.name = "SoraTome"
 
 include(":app")
 include(":plugin-api")

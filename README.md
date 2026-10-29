@@ -1,8 +1,6 @@
-# SoraTome (続き)
+# SoraTome
 
 A modern, extensible manga reader built from scratch, with a sandboxed plugin system and an advanced panel-aware reader.
-
-> *SoraTome* means " sky stories " in Japanese.
 
 **Status:** early development. Nothing is usable yet. See the [roadmap](docs/ROADMAP.md).
 

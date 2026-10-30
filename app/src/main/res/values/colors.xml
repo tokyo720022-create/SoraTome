@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Behind the launcher icon artwork. Matches the dark navy around the icon. -->
+    <color name="ic_launcher_background">#050B18</color>
+    <!-- System splash background (Android 12 and newer). Matches the in-app splash. -->
+    <color name="splash_background">#150D28</color>
+</resources>

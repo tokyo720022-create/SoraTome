@@ -29,6 +29,7 @@ Root: `io.github.tokyo720022create.soratome`
 | `data.reader` | `ReaderPreferences`, `ChapterListPreferences`, `ReadingProgressStore` |
 | `domain.reader` | `ReadingMode`, `ImageQuality`, `PageFit`, `ScreenRotation`, `AutoReadSpeed`, `ChapterSort`, `ChapterOrder`, `ChapterNaming` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
+| `feature.splash` | Start-up splash screen (name, tagline and caption are constants at the top of `SplashScreen.kt`) |
 | `feature.library` | Library tab |
 | `feature.history` | History tab |
 | `feature.browse` | Browse tab: plugin picker, search, results with covers; `BrowseState` |
@@ -84,6 +85,11 @@ To add a settings category:
 4. Register it in `SoraTomeNavHost`.
 
 To add another tracking service, add an entry to `TrackerService`.
+
+## App icon and splash
+
+- Icon artwork: `docs/images/soratome-icon.png`. The launcher icon is an adaptive icon (`res/mipmap-anydpi-v26`) with the artwork in `drawable-nodpi/ic_launcher_foreground.png` on the navy `ic_launcher_background`.
+- The in-app splash uses `drawable-nodpi/splash_logo.png`. The window background (`drawable/splash_background.xml`) is the same dark gradient, so there is no white flash on launch. On Android 12 and newer the system splash uses `splash_background` too.
 
 ## Planned
 

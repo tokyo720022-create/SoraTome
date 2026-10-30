@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/soratome-icon.png" alt="SoraTome" width="160">
+</p>
+
 # SoraTome
 
 A modern, extensible manga reader built from scratch, with a sandboxed plugin system and an advanced panel-aware reader.

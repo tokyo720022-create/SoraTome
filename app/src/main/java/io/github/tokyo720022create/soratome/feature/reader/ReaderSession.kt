@@ -20,14 +20,35 @@ class ReaderSession(
         private set
 
     val chapter: ChapterInfo get() = chapters[chapterIndex]
-    val hasNext: Boolean get() = chapterIndex < chapters.lastIndex
-    val hasPrevious: Boolean get() = chapterIndex > 0
 
-    fun goToNext() {
-        if (hasNext) chapterIndex++
+    /** With [skipExtras], chapters that have no number (extras, side stories) are passed over. */
+    fun hasNext(skipExtras: Boolean): Boolean = indexAfter(skipExtras) != null
+
+    fun hasPrevious(skipExtras: Boolean): Boolean = indexBefore(skipExtras) != null
+
+    fun goToNext(skipExtras: Boolean) {
+        indexAfter(skipExtras)?.let { chapterIndex = it }
     }
 
-    fun goToPrevious() {
-        if (hasPrevious) chapterIndex--
+    fun goToPrevious(skipExtras: Boolean) {
+        indexBefore(skipExtras)?.let { chapterIndex = it }
+    }
+
+    private fun indexAfter(skipExtras: Boolean): Int? {
+        var index = chapterIndex + 1
+        while (index <= chapters.lastIndex) {
+            if (!skipExtras || chapters[index].number != null) return index
+            index++
+        }
+        return null
+    }
+
+    private fun indexBefore(skipExtras: Boolean): Int? {
+        var index = chapterIndex - 1
+        while (index >= 0) {
+            if (!skipExtras || chapters[index].number != null) return index
+            index--
+        }
+        return null
     }
 }

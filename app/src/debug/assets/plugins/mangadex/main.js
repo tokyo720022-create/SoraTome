@@ -121,6 +121,7 @@ globalThis.plugin = {
         name: chapterName(attrs),
         number: isNaN(number) ? null : number,
         date: isNaN(published) ? null : published,
+        url: "https://mangadex.org/chapter/" + item.id,
       };
     });
   },

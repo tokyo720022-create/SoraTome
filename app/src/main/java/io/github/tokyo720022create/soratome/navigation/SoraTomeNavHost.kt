@@ -45,7 +45,12 @@ fun SoraTomeNavHost(
                 onOpenReader = { navController.navigate(Routes.READER) },
             )
         }
-        composable(Routes.READER) { ReaderScreen(onBack = goBack) }
+        composable(Routes.READER) {
+            ReaderScreen(
+                onBack = goBack,
+                onOpenReaderSettings = { navController.navigate(Routes.SETTINGS_READER) },
+            )
+        }
         composable(Routes.PROFILE) {
             ProfileScreen(
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },

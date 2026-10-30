@@ -55,7 +55,7 @@ globalThis.plugin = {
     // returns { id, title, description, cover, tags: [] }
   },
   async getChapters(seriesId) {
-    // returns [{ id, name, number, date }]   (date = epoch millis or null)
+    // returns [{ id, name, number, date, url? }]   (date = epoch millis or null; url = web address, optional)
   },
   async getPages(chapterId) {
     // returns [{ index, url, lowQualityUrl?, reportUrl? }]

@@ -23,18 +23,19 @@ Root: `io.github.tokyo720022create.soratome`
 |---|---|
 | (root) | `MainActivity`, `SoraTomeApplication` |
 | `navigation` | `Routes`, `TopLevelDestination`, `SoraTomeNavHost`, `SoraTomeBottomBar` |
-| `ui` | `SoraTomeApp` (root composable), `AppVersion` |
-| `ui.components` | Shared composables: `PlaceholderScreen`, `ScreenScaffold`, `RemoteImage` |
+| `ui` | `SoraTomeApp` (root composable), `AppVersion`, `findActivity` |
+| `ui.components` | Shared composables: `PlaceholderScreen`, `ScreenScaffold`, `RemoteImage`, `SwitchRow`, `DropdownRow`, `SegmentedOptions` |
 | `data.image` | `PageImageLoader`, `ImageLoadReporter`, `PageLoadException` |
-| `data.reader` | `ReaderPreferences`, `ReadingProgressStore` |
-| `domain.reader` | `ReadingMode`, `ImageQuality` |
+| `data.reader` | `ReaderPreferences`, `ChapterListPreferences`, `ReadingProgressStore` |
+| `domain.reader` | `ReadingMode`, `ImageQuality`, `PageFit`, `ScreenRotation`, `AutoReadSpeed`, `ChapterSort`, `ChapterOrder`, `ChapterNaming` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
 | `feature.library` | Library tab |
 | `feature.history` | History tab |
 | `feature.browse` | Browse tab: plugin picker, search, results with covers; `BrowseState` |
 | `feature.browse.details` | Series details and chapter list |
-| `feature.reader` | Chapter reader: `ReaderScreen`, `ReaderSession` |
-| `feature.reader.components` | `PagedReader`, `VerticalReader`, `PageImage`, `ReaderTopBar`, `ReaderBottomBar`, `ReaderOptionGroups` |
+| `feature.reader` | Chapter reader: `ReaderScreen`, `ReaderSession`, `ReaderKeyEvents` (volume keys) |
+| `feature.reader.zoom` | `ZoomState`, pinch and drag gestures |
+| `feature.reader.components` | `PagedReader`, `VerticalReader`, `PageImage`, `ReaderTopBar`, `ReaderBottomBar`, `ReaderOptionsSheet`, `OperationTipsDialog`, `ClockBatteryBadge`, `AutoReadPill`, `ReaderChapterReminder` |
 | `feature.profile` | Profile tab: account header, AniList and MyAnimeList sync cards, in-app stats, link to Settings |
 | `feature.profile.components` | `ProfileHeaderCard`, `TrackerSyncCard`, `AppStatsCard` |
 | `feature.settings` | Settings list: `SettingsScreen`, `SettingsCategory` |
@@ -70,7 +71,7 @@ Bottom bar tabs: **Library, History, Browse, Profile**. Browse opens a series (`
 |---|---|
 | Tracking | AniList and MyAnimeList account rows (sign-in not implemented yet) |
 | About | Version and license |
-| Reader | Reading mode and image quality |
+| Reader | Reader options, display and controls, chapter list (see `READER.md`) |
 | Appearance, Library, Downloads, Browse, Data and storage | Placeholder, no options yet |
 
 Not included on purpose: Security and privacy, Advanced.

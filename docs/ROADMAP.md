@@ -20,8 +20,9 @@ See [READER.md](READER.md).
 - [x] Paged reader (LTR/RTL) and continuous vertical reader
 - [x] Page slider, tap zones, previous/next chapter, preloading
 - [x] Reading progress (resume, finished chapters)
-- [ ] Zoom and double-tap zoom
-- [ ] Reader options from Tokyo Manga Lab: auto read, rotation, status bar, time and battery, volume keys
+- [x] Pinch and double-tap zoom
+- [x] Reader options from Tokyo Manga Lab: auto read, rotation, status bar, time and battery, volume keys, chapter reminder, skip extras, tips
+- [x] Settings > Reader and chapter list options
 - [ ] History tab fed by reading progress
 
 ## M3: Plugin runtime

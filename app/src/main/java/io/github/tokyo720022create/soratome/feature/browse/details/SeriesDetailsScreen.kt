@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ListItem
@@ -22,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +31,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.tokyo720022create.soratome.SoraTomeApplication
 import io.github.tokyo720022create.soratome.data.reader.ReadingProgressStore
+import io.github.tokyo720022create.soratome.domain.reader.ChapterNaming
+import io.github.tokyo720022create.soratome.domain.reader.ChapterOrder
+import io.github.tokyo720022create.soratome.domain.reader.ChapterSort
 import io.github.tokyo720022create.soratome.feature.reader.ReaderSession
 import io.github.tokyo720022create.soratome.plugin.api.source.ChapterInfo
 import io.github.tokyo720022create.soratome.plugin.api.source.SeriesDetails
@@ -41,7 +44,7 @@ import kotlinx.coroutines.CancellationException
 private sealed interface DetailsState {
     data object Loading : DetailsState
     data class Failed(val message: String) : DetailsState
-    data class Loaded(val details: SeriesDetails, val chaptersAscending: List<ChapterInfo>) : DetailsState
+    data class Loaded(val details: SeriesDetails, val chapters: List<ChapterInfo>) : DetailsState
 }
 
 @Composable
@@ -64,7 +67,7 @@ fun SeriesDetailsScreen(
     }
 
     var state by remember(series.id) { mutableStateOf<DetailsState>(DetailsState.Loading) }
-    var attempt by remember(series.id) { mutableStateOf(0) }
+    var attempt by remember(series.id) { mutableIntStateOf(0) }
 
     LaunchedEffect(series.id, attempt) {
         state = DetailsState.Loading
@@ -93,15 +96,29 @@ fun SeriesDetailsScreen(
                 }
                 is DetailsState.Loaded -> {
                     val store = application.progressStore
+                    val listPrefs = application.chapterListPreferences
                     val pluginId = plugin.manifest.id
-                    val chapters = current.chaptersAscending
 
-                    fun open(indexAscending: Int) {
+                    // Reading order, first chapter first. Also the order Next/Previous follow.
+                    val ordered = remember(current.chapters, listPrefs.sort) {
+                        if (listPrefs.sort == ChapterSort.ByNumber) {
+                            current.chapters.sortedWith(
+                                compareBy<ChapterInfo> { it.number == null }.thenBy { it.number },
+                            )
+                        } else {
+                            current.chapters
+                        }
+                    }
+                    // Positions in [ordered] to show, in display order.
+                    val shown = (if (listPrefs.order == ChapterOrder.NewestFirst) ordered.indices.reversed() else ordered.indices)
+                        .filter { !listPrefs.onlyUnread || !store.isFinished(pluginId, ordered[it].id) }
+
+                    fun open(position: Int) {
                         application.readerSession = ReaderSession(
                             plugin = plugin,
                             seriesTitle = current.details.title,
-                            chapters = chapters,
-                            startIndex = indexAscending,
+                            chapters = ordered,
+                            startIndex = position,
                         )
                         onOpenReader()
                     }
@@ -114,40 +131,43 @@ fun SeriesDetailsScreen(
                             )
                         }
                         item {
-                            val resume = resumeIndex(chapters, store, pluginId)
                             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                                if (chapters.isEmpty()) {
-                                    Text("No readable chapters found.")
+                                if (ordered.isEmpty()) {
+                                    Text(
+                                        "No readable chapters here. This title's chapters may be " +
+                                            "hosted on another site.",
+                                    )
                                 } else {
-                                    val started = store.lastPage(pluginId, chapters[resume].id) != null
+                                    val resume = resumeIndex(ordered, store, pluginId)
+                                    val started = store.lastPage(pluginId, ordered[resume].id) != null
                                     Button(
                                         onClick = { open(resume) },
                                         modifier = Modifier.fillMaxWidth(),
                                     ) {
                                         Text(
-                                            (if (started) "Continue: " else "Start: ") + chapters[resume].name,
+                                            (if (started) "Continue: " else "Start: ") +
+                                                chapterTitle(ordered[resume], listPrefs.naming),
                                             maxLines = 1,
                                         )
                                     }
                                 }
                                 Spacer(Modifier.height(8.dp))
                                 Text(
-                                    "Chapters (${chapters.size})",
+                                    "Chapters (${ordered.size})",
                                     style = MaterialTheme.typography.titleMedium,
                                 )
                             }
                         }
-                        // Newest first; each row maps back to its position in the ascending list.
-                        items(chapters.size, key = { chapters[chapters.lastIndex - it].id }) { row ->
-                            val ascendingIndex = chapters.lastIndex - row
-                            val chapter = chapters[ascendingIndex]
+                        items(count = shown.size, key = { ordered[shown[it]].id }) { row ->
+                            val position = shown[row]
+                            val chapter = ordered[position]
                             ListItem(
-                                headlineContent = { Text(chapter.name, maxLines = 2) },
+                                headlineContent = { Text(chapterTitle(chapter, listPrefs.naming), maxLines = 2) },
                                 supportingContent = {
                                     val label = progressLabel(store, pluginId, chapter.id)
                                     if (label != null) Text(label)
                                 },
-                                modifier = Modifier.clickable { open(ascendingIndex) },
+                                modifier = Modifier.clickable { open(position) },
                             )
                         }
                     }
@@ -179,6 +199,16 @@ private fun Header(details: SeriesDetails, allowedDomains: List<String>) {
             Text(it, style = MaterialTheme.typography.bodyMedium, maxLines = 8)
         }
     }
+}
+
+/** The name shown for a chapter: the source's title, or just "Chapter N". */
+private fun chapterTitle(chapter: ChapterInfo, naming: ChapterNaming): String {
+    val number = chapter.number
+    if (naming == ChapterNaming.NumberOnly && number != null) {
+        val text = if (number % 1f == 0f) number.toInt().toString() else number.toString()
+        return "Chapter $text"
+    }
+    return chapter.name
 }
 
 /** Where "Continue" should start: the unfinished chapter you left, or the one after the last finished. */

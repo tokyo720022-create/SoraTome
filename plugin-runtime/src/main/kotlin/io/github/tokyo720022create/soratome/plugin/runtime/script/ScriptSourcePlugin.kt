@@ -72,6 +72,7 @@ class ScriptSourcePlugin private constructor(
                 name = obj.getString("name"),
                 number = if (obj.isNull("number")) null else obj.getDouble("number").toFloat(),
                 dateMillis = if (obj.isNull("date")) null else obj.getLong("date"),
+                url = obj.stringOrNull("url"),
             )
         }
     }

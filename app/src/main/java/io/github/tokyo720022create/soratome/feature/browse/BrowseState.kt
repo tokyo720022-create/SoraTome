@@ -16,6 +16,9 @@ class BrowseState {
     var hasNext by mutableStateOf(false)
     var searched by mutableStateOf(false)
 
+    /** The plugin the current results came from. */
+    var resultsPluginId by mutableStateOf<String?>(null)
+
     /** The series opened from the results list. */
     var selectedSeries by mutableStateOf<SeriesSummary?>(null)
 
@@ -25,5 +28,6 @@ class BrowseState {
         page = 1
         hasNext = false
         searched = false
+        resultsPluginId = null
     }
 }

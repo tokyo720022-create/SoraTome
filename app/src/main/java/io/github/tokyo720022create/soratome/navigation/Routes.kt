@@ -16,6 +16,9 @@ object Routes {
     const val SETTINGS_DOWNLOADS = "settings/downloads"
     const val SETTINGS_TRACKING = "settings/tracking"
     const val SETTINGS_BROWSE = "settings/browse"
+    const val SETTINGS_BROWSE_REPOSITORY = "settings/browse/repository/{index}"
     const val SETTINGS_DATA = "settings/data"
     const val SETTINGS_ABOUT = "settings/about"
+
+    fun browseRepository(index: Int) = "settings/browse/repository/$index"
 }

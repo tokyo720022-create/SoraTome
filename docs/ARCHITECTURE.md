@@ -26,6 +26,7 @@ Root: `io.github.tokyo720022create.soratome`
 | `ui` | `SoraTomeApp` (root composable), `AppVersion`, `findActivity` |
 | `ui.components` | Shared composables: `PlaceholderScreen`, `ScreenScaffold`, `RemoteImage`, `SwitchRow`, `DropdownRow`, `SegmentedOptions` |
 | `data.image` | `PageImageLoader`, `ImageLoadReporter`, `PageLoadException` |
+| `data.plugins` | `PluginManager` (install, update, remove, switch, repositories), `PluginRegistry`, `PluginEntry`, `AvailableUpdate`, `UpdateCheck` |
 | `data.reader` | `ReaderPreferences`, `ChapterListPreferences`, `ReadingProgressStore` |
 | `domain.reader` | `ReadingMode`, `ImageQuality`, `PageFit`, `ScreenRotation`, `AutoReadSpeed`, `ChapterSort`, `ChapterOrder`, `ChapterNaming` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
@@ -41,6 +42,9 @@ Root: `io.github.tokyo720022create.soratome`
 | `feature.profile.components` | `ProfileHeaderCard`, `TrackerSyncCard`, `AppStatsCard` |
 | `feature.settings` | Settings list: `SettingsScreen`, `SettingsCategory` |
 | `feature.settings.components` | `SettingsScaffold`, `SettingsPlaceholderScreen`, `SettingsSectionHeader` |
+| `feature.settings.browse` | Settings > Browse: plugin list, install from file or link, repositories, updates (`BrowseSettingsScreen`, `PendingInstall`) |
+| `feature.settings.browse.components` | `PluginRow`, `InstallPluginDialog` |
+| `feature.settings.browse.repository` | `RepositoryScreen` (plugins listed in one repository) |
 | `feature.settings.<category>` | One screen per category: `appearance`, `library`, `reader`, `downloads`, `tracking`, `browse`, `data`, `about` |
 
 ## Navigation
@@ -62,7 +66,9 @@ Bottom bar tabs: **Library, History, Browse, Profile**. Browse opens a series (`
 | `plugin.runtime.manifest` | `ManifestParser` |
 | `plugin.runtime.network` | `NetworkPolicy`, `HostHttp` |
 | `plugin.runtime.script` | `ScriptSourcePlugin` (QuickJS), JSON helpers |
-| `plugin.runtime.loader` | `AssetPluginLoader` |
+| `plugin.runtime.loader` | `AssetPluginLoader` (bundled), `FilePluginLoader` (installed) |
+| `plugin.runtime.install` | `PluginPackageReader`, `PluginPackage`, `PluginStore`, `PluginDownloader`, `LimitedReader`, `Hashing`, `PluginVersion` |
+| `plugin.runtime.repository` | `RepositoryIndexParser`, `RepositoryIndex`, `RepositoryPlugin` |
 
 ## Settings
 
@@ -73,7 +79,8 @@ Bottom bar tabs: **Library, History, Browse, Profile**. Browse opens a series (`
 | Tracking | AniList and MyAnimeList account rows (sign-in not implemented yet) |
 | About | Version and license |
 | Reader | Reader options, display and controls, chapter list (see `READER.md`) |
-| Appearance, Library, Downloads, Browse, Data and storage | Placeholder, no options yet |
+| Browse | Plugins: install, update, remove, switch on or off, repositories (see `PLUGIN_REPOSITORY.md`) |
+| Appearance, Library, Downloads, Data and storage | Placeholder, no options yet |
 
 Not included on purpose: Security and privacy, Advanced.
 

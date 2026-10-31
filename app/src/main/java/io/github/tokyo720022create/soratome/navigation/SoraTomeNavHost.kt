@@ -3,6 +3,8 @@ package io.github.tokyo720022create.soratome.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.tokyo720022create.soratome.feature.browse.BrowseScreen
@@ -15,6 +17,7 @@ import io.github.tokyo720022create.soratome.feature.settings.SettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.about.AboutSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.appearance.AppearanceSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.browse.BrowseSettingsScreen
+import io.github.tokyo720022create.soratome.feature.settings.browse.repository.RepositoryScreen
 import io.github.tokyo720022create.soratome.feature.settings.data.DataSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.downloads.DownloadsSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.library.LibrarySettingsScreen
@@ -37,7 +40,10 @@ fun SoraTomeNavHost(
         composable(Routes.LIBRARY) { LibraryScreen() }
         composable(Routes.HISTORY) { HistoryScreen() }
         composable(Routes.BROWSE) {
-            BrowseScreen(onOpenSeries = { navController.navigate(Routes.SERIES_DETAILS) })
+            BrowseScreen(
+                onOpenSeries = { navController.navigate(Routes.SERIES_DETAILS) },
+                onOpenPluginSettings = { navController.navigate(Routes.SETTINGS_BROWSE) },
+            )
         }
         composable(Routes.SERIES_DETAILS) {
             SeriesDetailsScreen(
@@ -70,7 +76,18 @@ fun SoraTomeNavHost(
         composable(Routes.SETTINGS_READER) { ReaderSettingsScreen(onBack = goBack) }
         composable(Routes.SETTINGS_DOWNLOADS) { DownloadsSettingsScreen(onBack = goBack) }
         composable(Routes.SETTINGS_TRACKING) { TrackingSettingsScreen(onBack = goBack) }
-        composable(Routes.SETTINGS_BROWSE) { BrowseSettingsScreen(onBack = goBack) }
+        composable(Routes.SETTINGS_BROWSE) {
+            BrowseSettingsScreen(
+                onBack = goBack,
+                onOpenRepository = { index -> navController.navigate(Routes.browseRepository(index)) },
+            )
+        }
+        composable(
+            route = Routes.SETTINGS_BROWSE_REPOSITORY,
+            arguments = listOf(navArgument("index") { type = NavType.IntType }),
+        ) { entry ->
+            RepositoryScreen(index = entry.arguments?.getInt("index") ?: -1, onBack = goBack)
+        }
         composable(Routes.SETTINGS_DATA) { DataSettingsScreen(onBack = goBack) }
         composable(Routes.SETTINGS_ABOUT) { AboutSettingsScreen(onBack = goBack) }
     }

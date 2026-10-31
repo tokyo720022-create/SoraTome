@@ -35,7 +35,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @Composable
-fun BrowseScreen(onOpenSeries: () -> Unit) {
+fun BrowseScreen(
+    onOpenSeries: () -> Unit,
+    onOpenPluginSettings: () -> Unit,
+) {
     val application = LocalContext.current.applicationContext as SoraTomeApplication
     val state = application.browseState
     val plugins = application.plugins
@@ -50,6 +53,7 @@ fun BrowseScreen(onOpenSeries: () -> Unit) {
             state.page = page
             state.hasNext = result.hasNext
             state.searched = true
+            state.resultsPluginId = source.manifest.id
             state.status = if (state.results.isEmpty()) "No results" else "${state.results.size} result(s)"
         } catch (e: CancellationException) {
             throw e
@@ -58,11 +62,19 @@ fun BrowseScreen(onOpenSeries: () -> Unit) {
         }
     }
 
-    // First visit: pick the first plugin and show its default listing.
+    // Show the plugin's default listing the first time, and again when the plugin changes
+    // (for example after the one in use was switched off or removed).
     LaunchedEffect(plugin?.manifest?.id) {
         if (plugin != null) {
             state.selectedPluginId = plugin.manifest.id
-            if (!state.searched) search(plugin, 1)
+            if (state.resultsPluginId != plugin.manifest.id) {
+                // A different plugin than before: forget the old search text and results.
+                if (state.resultsPluginId != null) state.query = ""
+                state.clearResults()
+                search(plugin, 1)
+            }
+        } else {
+            state.clearResults()
         }
     }
 
@@ -73,9 +85,11 @@ fun BrowseScreen(onOpenSeries: () -> Unit) {
         if (plugin == null) {
             Text(text = "No plugins installed.", style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = "Plugins will be installable from here in a future version.",
+                text = "SoraTome comes with no sources. Add a plugin to start browsing.",
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp),
             )
+            Button(onClick = onOpenPluginSettings) { Text("Add plugins") }
             return@Column
         }
 

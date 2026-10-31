@@ -1,8 +1,10 @@
 package io.github.tokyo720022create.soratome.plugin.runtime.network
 
 import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginSecurityException
+import java.net.InetAddress
 import java.net.MalformedURLException
 import java.net.URL
+import java.net.UnknownHostException
 
 /**
  * Decides which URLs a plugin may contact, based on the domains in its manifest.
@@ -26,6 +28,26 @@ class NetworkPolicy(allowedDomains: List<String>) {
         if (!allowed) {
             throw PluginSecurityException("This plugin is not allowed to contact $host")
         }
+        rejectLocalNetwork(host)
         return parsed
+    }
+
+    /** A plugin may only reach public websites, never devices on this phone or the local network. */
+    private fun rejectLocalNetwork(host: String) {
+        val addresses = try {
+            InetAddress.getAllByName(host)
+        } catch (e: UnknownHostException) {
+            return // The connection attempt will report the problem.
+        }
+        for (address in addresses) {
+            val bytes = address.address
+            val uniqueLocal = bytes.size == 16 && (bytes[0].toInt() and 0xFE) == 0xFC
+            if (
+                address.isAnyLocalAddress || address.isLoopbackAddress ||
+                address.isLinkLocalAddress || address.isSiteLocalAddress || uniqueLocal
+            ) {
+                throw PluginSecurityException("$host points to a private network address, so it is blocked")
+            }
+        }
     }
 }

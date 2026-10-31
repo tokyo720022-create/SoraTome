@@ -86,7 +86,8 @@ Not available yet: `host.http.post`, HTML parsing helpers, per-plugin settings s
 - Scripts run in a separate QuickJS instance per plugin, with a 60 s evaluation limit.
 - No `eval` of remote code and no dynamic imports from the network.
 - The app ships with no default repositories. Users add repositories themselves.
-- Planned: signed repository indexes, install-time permission prompts, memory limits.
+- Install-time permission prompt, https-only network access, and blocking of private network addresses are in place. Packages and repositories: see [PLUGIN_REPOSITORY.md](PLUGIN_REPOSITORY.md).
+- Planned: signed repository indexes, memory limits.
 
 ## Open questions
 

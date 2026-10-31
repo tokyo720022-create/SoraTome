@@ -29,7 +29,8 @@ See [READER.md](READER.md).
 - [x] Plugin manifest and permission model
 - [x] Sandboxed script runtime (QuickJS)
 - [x] Sample plugin with demo data (debug builds only)
-- [ ] Plugin install, update, and removal
+- [x] Plugin install (file, link, repository), update, and removal
+- [ ] Signed repositories
 
 ## M4: Advanced reader
 - [ ] Panel detection and smart zoom

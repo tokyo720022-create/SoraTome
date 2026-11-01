@@ -7,6 +7,10 @@
 3. When the run finishes, download the `soratome-debug-apk` artifact from the run summary.
 4. Unzip it and install `app-debug.apk` on an Android 8.0+ device.
 
+## Installing a new build over the old one
+
+Builds are signed with a key saved in the repository's secrets, so a new build installs over the old one and keeps your data. See [SIGNING.md](SIGNING.md) for the one-time setup.
+
 ## Locally
 
 Requirements: JDK 17 and Gradle 8.11.1 (or the Android Studio bundled Gradle).

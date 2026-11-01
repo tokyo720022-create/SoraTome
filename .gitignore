@@ -11,10 +11,14 @@ captures/
 .externalNativeBuild/
 .cxx/
 
-# Signing
+# Signing keys: never commit these
 *.jks
 *.keystore
+*.p12
+*.pfx
+*.b64
 keystore.properties
+*signing-secrets*
 
 # OS
 .DS_Store

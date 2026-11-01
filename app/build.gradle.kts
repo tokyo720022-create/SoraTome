@@ -6,6 +6,15 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// Signing key, supplied by the build machine (GitHub Actions secrets). It is never stored in the
+// repository. Without it the build falls back to Android's temporary debug key.
+val signingKeyPath: String? = System.getenv("SORATOME_KEYSTORE_PATH")?.takeIf { it.isNotBlank() }
+val signingKeyPassword: String? = System.getenv("SORATOME_KEYSTORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val hasSigningKey = signingKeyPath != null && signingKeyPassword != null
+
+// Each GitHub Actions run gets a higher number, so a newer build always installs over an older one.
+val buildNumber: Int = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+
 android {
     namespace = "io.github.tokyo720022create.soratome"
     compileSdk = 36
@@ -14,13 +23,28 @@ android {
         applicationId = "io.github.tokyo720022create.soratome"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
+        versionCode = buildNumber
         versionName = "0.1.0"
     }
 
+    if (hasSigningKey) {
+        signingConfigs {
+            create("soratome") {
+                storeFile = file(signingKeyPath!!)
+                storePassword = signingKeyPassword
+                keyAlias = "soratome"
+                keyPassword = signingKeyPassword
+            }
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            if (hasSigningKey) signingConfig = signingConfigs.getByName("soratome")
+        }
         release {
             isMinifyEnabled = false
+            if (hasSigningKey) signingConfig = signingConfigs.getByName("soratome")
         }
     }
 

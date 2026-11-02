@@ -3,6 +3,7 @@ package io.github.tokyo720022create.soratome
 import android.app.Application
 import io.github.tokyo720022create.soratome.data.image.PageImageLoader
 import io.github.tokyo720022create.soratome.data.plugins.PluginManager
+import io.github.tokyo720022create.soratome.data.plugins.PluginPreferences
 import io.github.tokyo720022create.soratome.data.reader.ChapterListPreferences
 import io.github.tokyo720022create.soratome.data.reader.ReaderPreferences
 import io.github.tokyo720022create.soratome.data.reader.ReadingProgressStore
@@ -12,8 +13,9 @@ import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
 
 class SoraTomeApplication : Application() {
 
-    /** Installs, updates and removes plugins, and keeps the list of repositories. */
-    val pluginManager: PluginManager by lazy { PluginManager(this) }
+    /** Plugin settings, and the manager that installs, updates and removes plugins and keeps the stores. */
+    val pluginPreferences: PluginPreferences by lazy { PluginPreferences(this) }
+    val pluginManager: PluginManager by lazy { PluginManager(this, pluginPreferences) }
 
     /** The source plugins that are switched on. */
     val plugins: List<SourcePlugin> get() = pluginManager.enabledPlugins

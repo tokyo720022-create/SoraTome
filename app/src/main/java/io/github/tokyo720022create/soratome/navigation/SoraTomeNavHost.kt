@@ -17,7 +17,9 @@ import io.github.tokyo720022create.soratome.feature.settings.SettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.about.AboutSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.appearance.AppearanceSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.browse.BrowseSettingsScreen
+import io.github.tokyo720022create.soratome.feature.settings.browse.plugins.PluginsScreen
 import io.github.tokyo720022create.soratome.feature.settings.browse.repository.RepositoryScreen
+import io.github.tokyo720022create.soratome.feature.settings.browse.stores.StoresScreen
 import io.github.tokyo720022create.soratome.feature.settings.data.DataSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.downloads.DownloadsSettingsScreen
 import io.github.tokyo720022create.soratome.feature.settings.library.LibrarySettingsScreen
@@ -42,7 +44,7 @@ fun SoraTomeNavHost(
         composable(Routes.BROWSE) {
             BrowseScreen(
                 onOpenSeries = { navController.navigate(Routes.SERIES_DETAILS) },
-                onOpenPluginSettings = { navController.navigate(Routes.SETTINGS_BROWSE) },
+                onOpenPluginSettings = { navController.navigate(Routes.SETTINGS_BROWSE_PLUGINS) },
             )
         }
         composable(Routes.SERIES_DETAILS) {
@@ -79,9 +81,17 @@ fun SoraTomeNavHost(
         composable(Routes.SETTINGS_BROWSE) {
             BrowseSettingsScreen(
                 onBack = goBack,
-                onOpenRepository = { index -> navController.navigate(Routes.browseRepository(index)) },
+                onOpenStores = { navController.navigate(Routes.SETTINGS_BROWSE_STORES) },
+                onOpenPlugins = { navController.navigate(Routes.SETTINGS_BROWSE_PLUGINS) },
             )
         }
+        composable(Routes.SETTINGS_BROWSE_STORES) {
+            StoresScreen(
+                onBack = goBack,
+                onOpenStore = { index -> navController.navigate(Routes.browseRepository(index)) },
+            )
+        }
+        composable(Routes.SETTINGS_BROWSE_PLUGINS) { PluginsScreen(onBack = goBack) }
         composable(
             route = Routes.SETTINGS_BROWSE_REPOSITORY,
             arguments = listOf(navArgument("index") { type = NavType.IntType }),

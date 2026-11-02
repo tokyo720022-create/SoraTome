@@ -2,6 +2,7 @@ package io.github.tokyo720022create.soratome.plugin.runtime.repository
 
 import io.github.tokyo720022create.soratome.plugin.api.manifest.PLUGIN_API_VERSION
 import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginException
+import io.github.tokyo720022create.soratome.plugin.runtime.manifest.ManifestParser
 import java.net.MalformedURLException
 import java.net.URL
 import org.json.JSONException
@@ -47,14 +48,28 @@ object RepositoryIndexParser {
                         language = item.optString("language", "").ifBlank { null },
                         packageUrl = packageUrl.toString(),
                         sha256 = sha256,
+                        contentWarning = ManifestParser.parseContentWarning(item.optString("contentWarning", "")),
                     ),
                 )
             }
-            return RepositoryIndex(name = name, plugins = plugins)
+            return RepositoryIndex(
+                name = name,
+                website = httpsOrNull(root.optString("website", "")),
+                support = httpsOrNull(root.optString("support", "")),
+                plugins = plugins,
+            )
         } catch (e: JSONException) {
             throw PluginException("This is not a valid plugin repository", e)
         } catch (e: MalformedURLException) {
             throw PluginException("This is not a valid plugin repository", e)
         }
     }
+
+    private fun httpsOrNull(text: String): String? =
+        try {
+            val url = URL(text.trim())
+            if (url.protocol == "https") url.toString() else null
+        } catch (e: MalformedURLException) {
+            null
+        }
 }

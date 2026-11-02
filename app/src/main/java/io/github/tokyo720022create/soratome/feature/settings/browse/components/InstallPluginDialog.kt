@@ -41,6 +41,10 @@ fun InstallPluginDialog(
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(manifest.id, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "Content warning: ${manifest.contentWarning.label}",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
 
                 Spacer(Modifier.height(12.dp))
                 Text("From", style = MaterialTheme.typography.labelLarge)

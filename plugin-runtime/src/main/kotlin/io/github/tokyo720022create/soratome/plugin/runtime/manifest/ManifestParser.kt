@@ -1,5 +1,6 @@
 package io.github.tokyo720022create.soratome.plugin.runtime.manifest
 
+import io.github.tokyo720022create.soratome.plugin.api.manifest.ContentWarning
 import io.github.tokyo720022create.soratome.plugin.api.manifest.PLUGIN_API_VERSION
 import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginManifest
 import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginPermissions
@@ -30,6 +31,7 @@ object ManifestParser {
                     network = network,
                     storage = permissions?.optBoolean("storage", false) ?: false,
                 ),
+                contentWarning = parseContentWarning(root.optString("contentWarning", "")),
             )
             validate(manifest)
             return manifest
@@ -38,6 +40,14 @@ object ManifestParser {
         } catch (e: IllegalArgumentException) {
             throw PluginException("Invalid plugin manifest: ${e.message}", e)
         }
+    }
+
+    /** Reads "safe", "mixed" or "adult" (also "18+"). Empty means mixed. */
+    fun parseContentWarning(text: String): ContentWarning = when (text.trim().lowercase()) {
+        "", "mixed" -> ContentWarning.MIXED
+        "safe" -> ContentWarning.SAFE
+        "adult", "18+" -> ContentWarning.ADULT
+        else -> throw PluginException("Unknown contentWarning \"$text\". Use safe, mixed or adult.")
     }
 
     private fun validate(manifest: PluginManifest) {

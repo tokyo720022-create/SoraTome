@@ -6,7 +6,7 @@ import org.json.JSONObject
 
 /**
  * Small settings about plugins, kept on the device: which plugins are switched off,
- * where each installed plugin came from, and the repositories the user added.
+ * where each installed plugin came from, and the stores the user added.
  */
 class PluginRegistry(context: Context) {
 
@@ -37,13 +37,35 @@ class PluginRegistry(context: Context) {
         prefs.edit().putString(KEY_ORIGINS, origins.toString()).apply()
     }
 
-    fun repositories(): List<String> {
-        val array = JSONArray(prefs.getString(KEY_REPOSITORIES, "[]") ?: "[]")
-        return List(array.length()) { index -> array.getString(index) }
+    /** The stores the user added. Also reads the older format, a plain list of addresses. */
+    fun stores(): List<StoreInfo> {
+        val saved = prefs.getString(KEY_STORES, null) ?: prefs.getString(KEY_OLD_REPOSITORIES, null) ?: "[]"
+        val array = JSONArray(saved)
+        return List(array.length()) { index ->
+            when (val item = array.get(index)) {
+                is JSONObject -> StoreInfo(
+                    url = item.getString("url"),
+                    name = item.optString("name", "").ifBlank { null },
+                    website = item.optString("website", "").ifBlank { null },
+                    support = item.optString("support", "").ifBlank { null },
+                    pluginCount = if (item.has("pluginCount")) item.getInt("pluginCount") else null,
+                )
+                else -> StoreInfo(url = item.toString())
+            }
+        }
     }
 
-    fun saveRepositories(urls: List<String>) {
-        prefs.edit().putString(KEY_REPOSITORIES, JSONArray(urls).toString()).apply()
+    fun saveStores(stores: List<StoreInfo>) {
+        val array = JSONArray()
+        stores.forEach { store ->
+            val item = JSONObject().put("url", store.url)
+            store.name?.let { item.put("name", it) }
+            store.website?.let { item.put("website", it) }
+            store.support?.let { item.put("support", it) }
+            store.pluginCount?.let { item.put("pluginCount", it) }
+            array.put(item)
+        }
+        prefs.edit().putString(KEY_STORES, array.toString()).apply()
     }
 
     private fun disabledIds(): Set<String> = prefs.getStringSet(KEY_DISABLED, emptySet()) ?: emptySet()
@@ -51,6 +73,7 @@ class PluginRegistry(context: Context) {
     private companion object {
         const val KEY_DISABLED = "disabled_ids"
         const val KEY_ORIGINS = "origins"
-        const val KEY_REPOSITORIES = "repositories"
+        const val KEY_STORES = "stores"
+        const val KEY_OLD_REPOSITORIES = "repositories"
     }
 }

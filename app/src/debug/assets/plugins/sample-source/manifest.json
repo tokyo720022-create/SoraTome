@@ -6,6 +6,7 @@
   "type": "source",
   "entry": "main.js",
   "language": "en",
+  "contentWarning": "safe",
   "permissions": {
     "network": [],
     "storage": false

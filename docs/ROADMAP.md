@@ -30,7 +30,8 @@ See [READER.md](READER.md).
 - [x] Sandboxed script runtime (QuickJS)
 - [x] Sample plugin with demo data (debug builds only)
 - [x] Plugin install (file, link, repository), update, and removal
-- [ ] Signed repositories
+- [x] Plugin stores screen with name, website, support, copy and remove; content warnings (Safe, Mixed, 18+)
+- [ ] Signed stores
 
 ## M4: Advanced reader
 - [ ] Panel detection and smart zoom

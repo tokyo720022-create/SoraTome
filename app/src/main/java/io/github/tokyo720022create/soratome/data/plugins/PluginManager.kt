@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import io.github.tokyo720022create.soratome.plugin.api.manifest.ContentWarning
+import io.github.tokyo720022create.soratome.plugin.api.manifest.PluginManifest
 import io.github.tokyo720022create.soratome.plugin.api.source.SourcePlugin
 import io.github.tokyo720022create.soratome.plugin.runtime.error.PluginException
 import io.github.tokyo720022create.soratome.plugin.runtime.install.Hashing
@@ -29,11 +31,14 @@ import kotlinx.coroutines.withContext
 
 /**
  * Knows every plugin: the ones packaged in the app (debug builds) and the ones the user
- * installed. Installs, updates, removes and switches plugins, and manages repositories.
+ * installed. Installs, updates, removes and switches plugins, and manages plugin stores.
  *
- * SoraTome ships with no plugins in release builds and no repositories at all.
+ * SoraTome ships with no plugins in release builds and no stores at all.
  */
-class PluginManager(private val context: Context) {
+class PluginManager(
+    private val context: Context,
+    private val preferences: PluginPreferences,
+) {
 
     private val registry = PluginRegistry(context)
     private val store = PluginStore(File(context.filesDir, "plugins"))
@@ -46,19 +51,30 @@ class PluginManager(private val context: Context) {
     var entries by mutableStateOf<List<PluginEntry>>(emptyList())
         private set
 
-    /** Repository addresses the user added. */
-    var repositories by mutableStateOf(registry.repositories())
+    /** The plugin stores the user added. */
+    var stores by mutableStateOf(registry.stores())
         private set
 
-    /** The plugins that are switched on. */
+    /** Addresses of the stores, in the same order as [stores]. */
+    val repositories: List<String>
+        get() = stores.map { it.url }
+
+    /** The plugins that are switched on and allowed by the content warning settings. */
     val enabledPlugins: List<SourcePlugin>
-        get() = entries.filter { it.enabled }.map { it.plugin }
+        get() = entries.filter { it.enabled && isLoadable(it.manifest) }.map { it.plugin }
 
     init {
         bundled = AssetPluginLoader(context, logger).loadAll()
-        installed = FilePluginLoader(store.root, logger).loadAll()
+        installed = FilePluginLoader(this.store.root, logger).loadAll()
         refreshEntries()
     }
+
+    /**
+     * False when the content warning settings keep this plugin from loading.
+     * With "also apply to installed plugins" off, the settings only affect new installs.
+     */
+    fun isLoadable(manifest: PluginManifest): Boolean =
+        !preferences.applyToInstalled || preferences.isAllowed(manifest.contentWarning)
 
     // ---- installing ----
 
@@ -75,25 +91,39 @@ class PluginManager(private val context: Context) {
         PluginPackageReader.read(PluginDownloader.download(url, PluginPackageReader.MAX_PACKAGE_BYTES))
     }
 
-    /** Downloads a plugin listed in a repository and checks it against the listing. */
+    /** Downloads a plugin listed in a store and checks it against the listing. */
     suspend fun downloadFromRepository(entry: RepositoryPlugin): PluginPackage = withContext(Dispatchers.IO) {
         val bytes = PluginDownloader.download(entry.packageUrl, PluginPackageReader.MAX_PACKAGE_BYTES)
         val expected = entry.sha256
         if (expected != null && Hashing.sha256Hex(bytes) != expected) {
-            throw PluginException("The download does not match the checksum in the repository")
+            throw PluginException("The download does not match the checksum in the store")
         }
         val pkg = PluginPackageReader.read(bytes)
         if (pkg.manifest.id != entry.id) {
-            throw PluginException("The package does not match what the repository lists")
+            throw PluginException("The package does not match what the store lists")
         }
         pkg
     }
 
-    /** Installs [pkg], or updates the installed version of the same plugin. */
+    /**
+     * Installs [pkg], or updates the installed version of the same plugin.
+     * A plugin whose content warning is not allowed cannot be installed. An update of a plugin
+     * you already have is allowed when "also apply to installed plugins" is off.
+     */
     suspend fun install(pkg: PluginPackage, origin: String) {
         withContext(Dispatchers.IO) {
-            val id = pkg.manifest.id
-            store.write(pkg)
+            val manifest = pkg.manifest
+            val id = manifest.id
+            val isUpdate = installed.any { it.manifest.id == id }
+            val allowedByUpdateRule = isUpdate && !preferences.applyToInstalled
+            if (!allowedByUpdateRule && !preferences.isAllowed(manifest.contentWarning)) {
+                throw PluginException(
+                    "This plugin is marked ${manifest.contentWarning.label}. " +
+                        "Allow it in Settings > Browse > Allowed content warnings first.",
+                )
+            }
+
+            this@PluginManager.store.write(pkg)
             val plugin = ScriptSourcePlugin.create(pkg.manifestJson, pkg.script, logger)
             val previous = installed.firstOrNull { it.manifest.id == id }
             installed = installed.filter { it.manifest.id != id } + plugin
@@ -106,7 +136,7 @@ class PluginManager(private val context: Context) {
     suspend fun uninstall(id: String) {
         withContext(Dispatchers.IO) {
             val previous = installed.firstOrNull { it.manifest.id == id }
-            store.delete(id)
+            this@PluginManager.store.delete(id)
             installed = installed.filter { it.manifest.id != id }
             registry.clearOrigin(id)
             refreshEntries()
@@ -119,15 +149,15 @@ class PluginManager(private val context: Context) {
         refreshEntries()
     }
 
-    // ---- repositories ----
+    // ---- stores ----
 
-    /** Reads a repository index. */
+    /** Reads a store's index. */
     suspend fun fetchRepository(url: String): RepositoryIndex = withContext(Dispatchers.IO) {
         val bytes = PluginDownloader.download(url, RepositoryIndexParser.MAX_INDEX_BYTES)
         RepositoryIndexParser.parse(String(bytes, Charsets.UTF_8), url)
     }
 
-    /** Checks that [url] is a readable repository, then remembers it. */
+    /** Checks that [url] is a readable store, then remembers it with its name and links. */
     suspend fun addRepository(url: String) {
         val clean = url.trim()
         try {
@@ -135,20 +165,36 @@ class PluginManager(private val context: Context) {
         } catch (e: MalformedURLException) {
             throw PluginException("This is not a valid link")
         }
-        if (clean in repositories) throw PluginException("This repository is already added")
-        fetchRepository(clean)
-        val updated = repositories + clean
-        registry.saveRepositories(updated)
-        repositories = updated
+        if (clean in repositories) throw PluginException("This store is already added")
+        val index = fetchRepository(clean)
+        val updated = stores + infoFrom(clean, index)
+        registry.saveStores(updated)
+        stores = updated
     }
 
     fun removeRepository(url: String) {
-        val updated = repositories.filter { it != url }
-        registry.saveRepositories(updated)
-        repositories = updated
+        val updated = stores.filter { it.url != url }
+        registry.saveStores(updated)
+        stores = updated
     }
 
-    /** Looks in every added repository for newer versions of the installed plugins. */
+    /** Reads every store again and updates the saved names and links. Returns the addresses that failed. */
+    suspend fun refreshStores(): List<String> {
+        val failed = ArrayList<String>()
+        val updated = stores.map { known ->
+            try {
+                infoFrom(known.url, fetchRepository(known.url))
+            } catch (e: Exception) {
+                failed.add(known.url)
+                known
+            }
+        }
+        registry.saveStores(updated)
+        stores = updated
+        return failed
+    }
+
+    /** Looks in every added store for newer versions of the installed plugins. */
     suspend fun checkForUpdates(): UpdateCheck = withContext(Dispatchers.IO) {
         val best = LinkedHashMap<String, AvailableUpdate>()
         val failed = ArrayList<String>()
@@ -173,6 +219,14 @@ class PluginManager(private val context: Context) {
     }
 
     // ---- internals ----
+
+    private fun infoFrom(url: String, index: RepositoryIndex) = StoreInfo(
+        url = url,
+        name = index.name,
+        website = index.website,
+        support = index.support,
+        pluginCount = index.plugins.size,
+    )
 
     private fun refreshEntries() {
         val installedIds = installed.map { it.manifest.id }.toSet()

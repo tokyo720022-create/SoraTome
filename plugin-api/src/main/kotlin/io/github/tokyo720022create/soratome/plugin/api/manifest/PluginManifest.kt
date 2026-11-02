@@ -10,4 +10,5 @@ data class PluginManifest(
     val entry: String,
     val language: String? = null,
     val permissions: PluginPermissions = PluginPermissions(),
+    val contentWarning: ContentWarning = ContentWarning.MIXED,
 )

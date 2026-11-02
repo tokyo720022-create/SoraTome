@@ -1,6 +1,7 @@
 package io.github.tokyo720022create.soratome.ui.components
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,14 +14,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 
 /**
- * Title bar with a back button, for screens opened from another screen.
- * Window insets are left to the app-level Scaffold, which already applies them.
+ * Title bar with a back button (and optional buttons on the right), for screens opened from
+ * another screen. Window insets are left to the app-level Scaffold, which already applies them.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenScaffold(
     title: String,
     onBack: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -32,6 +34,7 @@ fun ScreenScaffold(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = actions,
                 windowInsets = WindowInsets(0, 0, 0, 0),
             )
         },

@@ -6,8 +6,13 @@
   "type": "source",
   "entry": "main.js",
   "language": "en",
+  "contentWarning": "mixed",
   "permissions": {
-    "network": ["api.mangadex.org", "uploads.mangadex.org", "mangadex.network"],
+    "network": [
+      "api.mangadex.org",
+      "uploads.mangadex.org",
+      "mangadex.network"
+    ],
     "storage": false
   }
 }

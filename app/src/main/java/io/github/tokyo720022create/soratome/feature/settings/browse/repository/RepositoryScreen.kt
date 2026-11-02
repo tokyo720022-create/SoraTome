@@ -45,23 +45,28 @@ private sealed interface RepositoryState {
     data class Loaded(val index: RepositoryIndex) : RepositoryState
 }
 
-/** The plugins listed in one repository, with Install and Update buttons. */
+/**
+ * The plugins listed in one store, with Install and Update buttons.
+ * Plugins whose content warning is not allowed are left out.
+ */
 @Composable
 fun RepositoryScreen(index: Int, onBack: () -> Unit) {
     val context = LocalContext.current
     val application = context.applicationContext as SoraTomeApplication
     val manager = application.pluginManager
+    val preferences = application.pluginPreferences
     val scope = rememberCoroutineScope()
-    val url = manager.repositories.getOrNull(index)
+    val store = manager.stores.getOrNull(index)
 
-    if (url == null) {
-        SettingsScaffold(title = "Repository", onBack = onBack) { padding ->
+    if (store == null) {
+        SettingsScaffold(title = "Plugin store", onBack = onBack) { padding ->
             Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("This repository was removed.")
+                Text("This store was removed.")
             }
         }
         return
     }
+    val url = store.url
 
     var state by remember(url) { mutableStateOf<RepositoryState>(RepositoryState.Loading) }
     var attempt by remember(url) { mutableIntStateOf(0) }
@@ -94,11 +99,11 @@ fun RepositoryScreen(index: Int, onBack: () -> Unit) {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            RepositoryState.Failed(e.message ?: "Could not read this repository")
+            RepositoryState.Failed(e.message ?: "Could not read this store")
         }
     }
 
-    val title = (state as? RepositoryState.Loaded)?.index?.name ?: hostOf(url)
+    val title = (state as? RepositoryState.Loaded)?.index?.name ?: store.name ?: hostOf(url)
 
     SettingsScaffold(title = title, onBack = onBack) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -112,33 +117,49 @@ fun RepositoryScreen(index: Int, onBack: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
                     Button(onClick = { attempt++ }) { Text("Retry") }
                 }
-                is RepositoryState.Loaded -> Column(Modifier.fillMaxSize()) {
-                    if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    if (current.index.plugins.isEmpty()) {
-                        Text(
-                            "This repository lists no plugins for this version of SoraTome.",
-                            modifier = Modifier.padding(16.dp),
-                        )
-                    }
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(count = current.index.plugins.size, key = { current.index.plugins[it].id }) { position ->
-                            val candidate = current.index.plugins[position]
-                            val installedVersion = manager.entries
-                                .firstOrNull { it.manifest.id == candidate.id && !it.bundled }
-                                ?.manifest?.version
-                            PluginListing(
-                                candidate = candidate,
-                                installedVersion = installedVersion,
-                                enabled = !busy,
-                                onInstall = {
-                                    guarded {
-                                        pending = PendingInstall(
-                                            manager.downloadFromRepository(candidate),
-                                            candidate.packageUrl,
-                                        )
-                                    }
-                                },
+                is RepositoryState.Loaded -> {
+                    val visible = current.index.plugins.filter { preferences.isAllowed(it.contentWarning) }
+                    val hidden = current.index.plugins.size - visible.size
+
+                    Column(Modifier.fillMaxSize()) {
+                        if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        if (visible.isEmpty() && hidden == 0) {
+                            Text(
+                                "This store lists no plugins for this version of SoraTome.",
+                                modifier = Modifier.padding(16.dp),
                             )
+                        }
+                        if (hidden > 0) {
+                            Text(
+                                if (hidden == 1) {
+                                    "1 plugin is hidden by your content warning settings."
+                                } else {
+                                    "$hidden plugins are hidden by your content warning settings."
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(16.dp),
+                            )
+                        }
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(count = visible.size, key = { visible[it].id }) { position ->
+                                val candidate = visible[position]
+                                val installedVersion = manager.entries
+                                    .firstOrNull { it.manifest.id == candidate.id && !it.bundled }
+                                    ?.manifest?.version
+                                PluginListing(
+                                    candidate = candidate,
+                                    installedVersion = installedVersion,
+                                    enabled = !busy,
+                                    onInstall = {
+                                        guarded {
+                                            pending = PendingInstall(
+                                                manager.downloadFromRepository(candidate),
+                                                candidate.packageUrl,
+                                            )
+                                        }
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -182,6 +203,7 @@ private fun PluginListing(
         supportingContent = {
             val details = listOfNotNull(
                 "Version ${candidate.version}",
+                candidate.contentWarning.label,
                 candidate.language,
                 candidate.description,
             ).joinToString(" · ")

@@ -23,6 +23,7 @@ Bundled plugins live in `assets/plugins/<folder>/`. A sample plugin is included 
   "type": "source",
   "entry": "main.js",
   "language": "en",
+  "contentWarning": "safe",
   "permissions": {
     "network": ["api.example.org"],
     "storage": false
@@ -30,7 +31,7 @@ Bundled plugins live in `assets/plugins/<folder>/`. A sample plugin is included 
 }
 ```
 
-`apiVersion` must match the version the app supports. `entry` must be a relative path without `..`.
+`contentWarning` is optional (`safe`, `mixed` or `adult`; default `mixed`). `apiVersion` must match the version the app supports. `entry` must be a relative path without `..`.
 
 ## Plugin types
 

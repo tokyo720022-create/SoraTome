@@ -1,91 +1,61 @@
 package io.github.tokyo720022create.soratome.feature.settings.browse
 
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.tokyo720022create.soratome.SoraTomeApplication
-import io.github.tokyo720022create.soratome.data.plugins.PluginEntry
-import io.github.tokyo720022create.soratome.data.plugins.UpdateCheck
-import io.github.tokyo720022create.soratome.feature.settings.browse.components.InstallPluginDialog
-import io.github.tokyo720022create.soratome.feature.settings.browse.components.PluginRow
+import io.github.tokyo720022create.soratome.feature.settings.browse.components.ContentWarningDialog
 import io.github.tokyo720022create.soratome.feature.settings.components.SettingsScaffold
 import io.github.tokyo720022create.soratome.feature.settings.components.SettingsSectionHeader
-import io.github.tokyo720022create.soratome.ui.components.TextInputDialog
+import io.github.tokyo720022create.soratome.plugin.api.manifest.ContentWarning
+import io.github.tokyo720022create.soratome.ui.components.SwitchRow
 import java.net.URL
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
-/** Settings > Browse: install, update, switch off and remove plugins, and manage repositories. */
+/** Settings > Browse: plugin stores, installed plugins and the content warning filter. */
 @Composable
 fun BrowseSettingsScreen(
     onBack: () -> Unit,
-    onOpenRepository: (index: Int) -> Unit,
+    onOpenStores: () -> Unit,
+    onOpenPlugins: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val application = context.applicationContext as SoraTomeApplication
+    val application = LocalContext.current.applicationContext as SoraTomeApplication
     val manager = application.pluginManager
-    val scope = rememberCoroutineScope()
+    val preferences = application.pluginPreferences
 
-    var busy by remember { mutableStateOf(false) }
-    var pending by remember { mutableStateOf<PendingInstall?>(null) }
-    var showLinkDialog by remember { mutableStateOf(false) }
-    var showRepositoryDialog by remember { mutableStateOf(false) }
-    var uninstallTarget by remember { mutableStateOf<PluginEntry?>(null) }
-    var updateCheck by remember { mutableStateOf<UpdateCheck?>(null) }
+    var showWarnings by remember { mutableStateOf(false) }
+    var confirmAdult by remember { mutableStateOf(false) }
 
-    fun tell(message: String) {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+    val storeCount = manager.stores.size
+    val storesSummary = when (storeCount) {
+        0 -> "No stores yet"
+        1 -> "1 store"
+        else -> "$storeCount stores"
     }
-
-    // Runs [block] with the busy bar showing, and reports any error in a message.
-    fun guarded(block: suspend () -> Unit) {
-        scope.launch {
-            busy = true
-            try {
-                block()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                tell(e.message ?: "Something went wrong")
-            } finally {
-                busy = false
-            }
-        }
-    }
-
-    val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            guarded { pending = PendingInstall(manager.readPackage(uri), "A file on this device") }
-        }
-    }
+    val pluginCount = manager.entries.size
+    val pluginsSummary = if (pluginCount == 1) "1 plugin" else "$pluginCount plugins"
 
     SettingsScaffold(title = "Browse", onBack = onBack) { padding ->
         Column(
@@ -94,181 +64,69 @@ fun BrowseSettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            if (busy) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-
-            Text(
-                text = "SoraTome comes with no plugins and no repositories. A plugin can contact " +
-                    "the websites it lists, so only install plugins from sources you trust.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(16.dp),
-            )
-
             SettingsSectionHeader("Plugins")
-            if (manager.entries.isEmpty()) {
-                ListItem(
-                    headlineContent = { Text("No plugins installed") },
-                    supportingContent = { Text("Add one below.") },
-                )
-            }
-            manager.entries.forEach { entry ->
-                PluginRow(
-                    entry = entry,
-                    onEnabledChange = { manager.setEnabled(entry.manifest.id, it) },
-                    onUninstall = { uninstallTarget = entry },
-                )
-            }
-
-            SettingsSectionHeader("Add a plugin")
             ListItem(
-                headlineContent = { Text("Install from file") },
-                supportingContent = { Text("Choose a plugin package on this device (.soraplugin or .zip)") },
-                modifier = Modifier.clickable(enabled = !busy) { pickFile.launch(arrayOf("*/*")) },
+                headlineContent = { Text("Plugin stores") },
+                supportingContent = { Text(storesSummary) },
+                modifier = Modifier.clickable(onClick = onOpenStores),
             )
             ListItem(
-                headlineContent = { Text("Install from link") },
-                supportingContent = { Text("Paste the https link to a plugin package") },
-                modifier = Modifier.clickable(enabled = !busy) { showLinkDialog = true },
+                headlineContent = { Text("Installed plugins") },
+                supportingContent = { Text("$pluginsSummary · install from a file or link, update, remove") },
+                modifier = Modifier.clickable(onClick = onOpenPlugins),
             )
 
-            SettingsSectionHeader("Repositories")
-            manager.repositories.forEachIndexed { index, url ->
-                ListItem(
-                    headlineContent = { Text(hostOf(url)) },
-                    supportingContent = { Text(url, maxLines = 2) },
-                    trailingContent = {
-                        IconButton(onClick = { manager.removeRepository(url) }) {
-                            Icon(Icons.Filled.Delete, contentDescription = "Remove repository")
-                        }
-                    },
-                    modifier = Modifier.clickable { onOpenRepository(index) },
-                )
-            }
+            SettingsSectionHeader("Content")
             ListItem(
-                headlineContent = { Text("Add repository") },
-                supportingContent = { Text("A repository is a list of plugins you can install and update") },
-                modifier = Modifier.clickable(enabled = !busy) { showRepositoryDialog = true },
+                headlineContent = { Text("Allowed content warnings") },
+                supportingContent = { Text(preferences.summary()) },
+                modifier = Modifier.clickable { showWarnings = true },
+            )
+            SwitchRow(
+                title = "Also apply to installed plugins",
+                summary = "When off, plugins you already installed keep loading and updating " +
+                    "regardless of their warning",
+                checked = preferences.applyToInstalled,
+                onCheckedChange = { preferences.updateApplyToInstalled(it) },
             )
 
-            SettingsSectionHeader("Updates")
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                OutlinedButton(
-                    onClick = { guarded { updateCheck = manager.checkForUpdates() } },
-                    enabled = !busy && manager.repositories.isNotEmpty(),
-                ) {
-                    Text("Check for updates")
-                }
-                if (manager.repositories.isEmpty()) {
-                    Text(
-                        "Add a repository to check for updates.",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            }
-            updateCheck?.let { result ->
-                if (result.updates.isEmpty()) {
-                    ListItem(headlineContent = { Text("All plugins are up to date") })
-                }
-                result.updates.forEach { update ->
-                    ListItem(
-                        headlineContent = { Text(update.installed.manifest.name) },
-                        supportingContent = {
-                            Text("${update.installed.manifest.version} → ${update.candidate.version}")
-                        },
-                        trailingContent = {
-                            Button(
-                                enabled = !busy,
-                                onClick = {
-                                    guarded {
-                                        pending = PendingInstall(
-                                            manager.downloadFromRepository(update.candidate),
-                                            update.candidate.packageUrl,
-                                        )
-                                    }
-                                },
-                            ) {
-                                Text("Update")
-                            }
-                        },
-                    )
-                }
-                if (result.failedRepositories.isNotEmpty()) {
-                    Text(
-                        "Could not read: " + result.failedRepositories.joinToString { hostOf(it) },
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(16.dp),
-                    )
-                }
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                Icon(Icons.Filled.Info, contentDescription = null)
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = "Installed plugins that aren't loaded stay listed without their sources; " +
+                        "plugins you haven't installed are hidden in stores. This does not prevent " +
+                        "plugins that label themselves wrongly from showing 18+ content in the app.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
             }
         }
     }
 
-    pending?.let { request ->
-        val current = manager.entries.firstOrNull { it.manifest.id == request.pkg.manifest.id && !it.bundled }
-        InstallPluginDialog(
-            pending = request,
-            installedVersion = current?.manifest?.version,
-            busy = busy,
-            onConfirm = {
-                guarded {
-                    manager.install(request.pkg, request.origin)
-                    tell("Installed ${request.pkg.manifest.name}")
-                    pending = null
-                    updateCheck = null
-                }
-            },
-            onDismiss = { pending = null },
+    if (showWarnings) {
+        ContentWarningDialog(
+            preferences = preferences,
+            onAskAdult = { confirmAdult = true },
+            onDismiss = { showWarnings = false },
         )
     }
 
-    uninstallTarget?.let { target ->
+    if (confirmAdult) {
         AlertDialog(
-            onDismissRequest = { uninstallTarget = null },
-            title = { Text("Uninstall ${target.manifest.name}?") },
-            text = { Text("The plugin is removed from this device. Your reading progress is kept.") },
+            onDismissRequest = { confirmAdult = false },
+            title = { Text("Allow 18+ plugins?") },
+            text = { Text("18+ plugins can show adult content. Turn this on only if you are an adult.") },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        uninstallTarget = null
-                        guarded {
-                            manager.uninstall(target.manifest.id)
-                            tell("Removed ${target.manifest.name}")
-                        }
+                        preferences.setAllowed(ContentWarning.ADULT, true)
+                        confirmAdult = false
                     },
                 ) {
-                    Text("Uninstall")
+                    Text("Allow")
                 }
             },
-            dismissButton = { TextButton(onClick = { uninstallTarget = null }) { Text("Cancel") } },
-        )
-    }
-
-    if (showLinkDialog) {
-        TextInputDialog(
-            title = "Install from link",
-            label = "https link to a plugin package",
-            confirmLabel = "Continue",
-            onConfirm = { link ->
-                showLinkDialog = false
-                guarded { pending = PendingInstall(manager.downloadFromLink(link), link) }
-            },
-            onDismiss = { showLinkDialog = false },
-        )
-    }
-
-    if (showRepositoryDialog) {
-        TextInputDialog(
-            title = "Add repository",
-            label = "https link to the repository index",
-            confirmLabel = "Add",
-            onConfirm = { link ->
-                showRepositoryDialog = false
-                guarded {
-                    manager.addRepository(link)
-                    tell("Repository added")
-                }
-            },
-            onDismiss = { showRepositoryDialog = false },
+            dismissButton = { TextButton(onClick = { confirmAdult = false }) { Text("Cancel") } },
         )
     }
 }

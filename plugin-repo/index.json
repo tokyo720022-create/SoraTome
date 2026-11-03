@@ -10,7 +10,7 @@
       "language": "en",
       "description": "Reads MangaDex through its public API. For testing SoraTome.",
       "url": "org.soratome.mangadex-0.2.0.soraplugin",
-      "sha256": "513d2a244f390f610c69c019727df34916db73c4a3fee6c06e2d450450e99c37",
+      "sha256": "d6994e2d8ef0eb50358ee8c6447758878a95d0ce6f50ded73c37aa7fc07edac9",
       "contentWarning": "mixed"
     }
   ]

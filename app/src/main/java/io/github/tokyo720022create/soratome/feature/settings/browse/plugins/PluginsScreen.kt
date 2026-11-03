@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.tokyo720022create.soratome.SoraTomeApplication
+import io.github.tokyo720022create.soratome.data.plugins.LinkContent
 import io.github.tokyo720022create.soratome.data.plugins.PluginEntry
 import io.github.tokyo720022create.soratome.data.plugins.UpdateCheck
 import io.github.tokyo720022create.soratome.feature.settings.browse.PendingInstall
@@ -52,6 +53,7 @@ fun PluginsScreen(onBack: () -> Unit) {
     var showLinkDialog by remember { mutableStateOf(false) }
     var uninstallTarget by remember { mutableStateOf<PluginEntry?>(null) }
     var updateCheck by remember { mutableStateOf<UpdateCheck?>(null) }
+    var foundStore by remember { mutableStateOf<LinkContent.Store?>(null) }
 
     fun tell(message: String) {
         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
@@ -224,9 +226,42 @@ fun PluginsScreen(onBack: () -> Unit) {
             confirmLabel = "Continue",
             onConfirm = { link ->
                 showLinkDialog = false
-                guarded { pending = PendingInstall(manager.downloadFromLink(link), link) }
+                guarded {
+                    when (val found = manager.inspectLink(link)) {
+                        is LinkContent.Package -> pending = PendingInstall(found.pkg, link)
+                        is LinkContent.Store -> foundStore = found
+                    }
+                }
             },
             onDismiss = { showLinkDialog = false },
+        )
+    }
+
+
+    foundStore?.let { found ->
+        AlertDialog(
+            onDismissRequest = { foundStore = null },
+            title = { Text("Add plugin store?") },
+            text = {
+                Text(
+                    "This link is a plugin store, not a plugin.\n\n" +
+                        "${found.index.name}\n${found.index.plugins.size} plugins\n${found.url}",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        foundStore = null
+                        guarded {
+                            manager.saveStore(found.url, found.index)
+                            tell("Store added")
+                        }
+                    },
+                ) {
+                    Text("Add")
+                }
+            },
+            dismissButton = { TextButton(onClick = { foundStore = null }) { Text("Cancel") } },
         )
     }
 }

@@ -23,10 +23,10 @@ Root: `io.github.tokyo720022create.soratome`
 |---|---|
 | (root) | `MainActivity`, `SoraTomeApplication` |
 | `navigation` | `Routes`, `TopLevelDestination`, `SoraTomeNavHost`, `SoraTomeBottomBar` |
-| `ui` | `SoraTomeApp` (root composable), `AppVersion`, `findActivity` |
+| `ui` | `SoraTomeApp` (root composable), `AddStoreRequestDialog`, `AppVersion`, `findActivity` |
 | `ui.components` | Shared composables: `PlaceholderScreen`, `ScreenScaffold`, `RemoteImage`, `SwitchRow`, `DropdownRow`, `SegmentedOptions` |
 | `data.image` | `PageImageLoader`, `ImageLoadReporter`, `PageLoadException` |
-| `data.plugins` | `PluginManager` (install, update, remove, switch, stores), `PluginRegistry`, `PluginPreferences` (allowed content warnings), `StoreInfo`, `PluginEntry`, `AvailableUpdate`, `UpdateCheck` |
+| `data.plugins` | `PluginManager` (install, update, remove, switch, stores), `PluginRegistry`, `PluginPreferences` (allowed content warnings), `StoreInfo`, `LinkContent`, `PluginEntry`, `AvailableUpdate`, `UpdateCheck` |
 | `data.reader` | `ReaderPreferences`, `ChapterListPreferences`, `ReadingProgressStore` |
 | `domain.reader` | `ReadingMode`, `ImageQuality`, `PageFit`, `ScreenRotation`, `AutoReadSpeed`, `ChapterSort`, `ChapterOrder`, `ChapterNaming` |
 | `domain.tracking` | `TrackerService`, `TrackerAccountState` |
@@ -70,7 +70,7 @@ Bottom bar tabs: **Library, History, Browse, Profile**. Browse opens a series (`
 | `plugin.runtime.script` | `ScriptSourcePlugin` (QuickJS), JSON helpers |
 | `plugin.runtime.loader` | `AssetPluginLoader` (bundled), `FilePluginLoader` (installed) |
 | `plugin.runtime.install` | `PluginPackageReader`, `PluginPackage`, `PluginStore`, `PluginDownloader`, `LimitedReader`, `Hashing`, `PluginVersion` |
-| `plugin.runtime.repository` | `RepositoryIndexParser`, `RepositoryIndex`, `RepositoryPlugin` |
+| `plugin.runtime.repository` | `RepositoryIndexParser`, `RepositoryIndex`, `RepositoryPlugin`, `StoreAddress` (GitHub page addresses) |
 
 ## Settings
 
@@ -99,6 +99,10 @@ To add another tracking service, add an entry to `TrackerService`.
 
 - Icon artwork: `docs/images/soratome-icon.png`. The launcher icon is an adaptive icon (`res/mipmap-anydpi-v26`) with the artwork in `drawable-nodpi/ic_launcher_foreground.png` on the navy `ic_launcher_background`.
 - The in-app splash uses `drawable-nodpi/splash_logo.png`. The window background (`drawable/splash_background.xml`) is the same dark gradient, so there is no white flash on launch. On Android 12 and newer the system splash uses `splash_background` too.
+
+## Store publishing
+
+`plugins/` holds plugin sources, `tools/build_store.py` builds `plugin-repo/` (packages and `index.json`), and the Publish plugin store workflow runs it. See `PUBLISHING_A_STORE.md`.
 
 ## Planned
 

@@ -5,14 +5,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.github.tokyo720022create.soratome.SoraTomeApplication
 import io.github.tokyo720022create.soratome.navigation.Routes
 import io.github.tokyo720022create.soratome.navigation.SoraTomeBottomBar
 import io.github.tokyo720022create.soratome.navigation.SoraTomeNavHost
 
 @Composable
 fun SoraTomeApp() {
+    val application = LocalContext.current.applicationContext as SoraTomeApplication
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -37,6 +40,14 @@ fun SoraTomeApp() {
         SoraTomeNavHost(
             navController = navController,
             modifier = Modifier.padding(innerPadding),
+        )
+    }
+
+    val requestedStore = application.requestedStoreUrl
+    if (requestedStore != null) {
+        AddStoreRequestDialog(
+            url = requestedStore,
+            onFinished = { application.requestedStoreUrl = null },
         )
     }
 }

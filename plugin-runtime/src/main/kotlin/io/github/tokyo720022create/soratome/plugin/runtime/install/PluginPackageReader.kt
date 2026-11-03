@@ -27,8 +27,13 @@ object PluginPackageReader {
     private val domainPattern = Regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$")
     private val ipPattern = Regex("^[0-9.]+$")
 
+    /** True when [bytes] start like a zip file ("PK"). */
+    fun looksLikeZip(bytes: ByteArray): Boolean =
+        bytes.size >= 4 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte()
+
     fun read(bytes: ByteArray): PluginPackage {
         if (bytes.size > MAX_PACKAGE_BYTES) throw PluginException("The plugin package is too large")
+        if (!looksLikeZip(bytes)) throw PluginException(describeNotZip(bytes))
 
         val files = readEntries(bytes)
         val manifestPath = (
@@ -50,6 +55,21 @@ object PluginPackageReader {
         if (script.isBlank()) throw PluginException("${manifest.entry} is empty")
 
         return PluginPackage(manifest, manifestJson, script, bytes.size)
+    }
+
+    /** Explains what a file is when it should have been a plugin package but is not a zip. */
+    private fun describeNotZip(bytes: ByteArray): String {
+        val start = String(bytes, 0, minOf(bytes.size, 300), Charsets.UTF_8).trimStart()
+        return when {
+            start.startsWith("<") ->
+                "This is a web page, not a plugin package. For a file on GitHub, use its raw link " +
+                    "(raw.githubusercontent.com)."
+            start.startsWith("{") || start.startsWith("[") ->
+                "This is a JSON file, not a plugin package. If it lists plugins, add it under " +
+                    "Plugin stores instead."
+            else ->
+                "This is not a valid plugin package (it must be a zip file, ${bytes.size} bytes received)."
+        }
     }
 
     private fun readEntries(bytes: ByteArray): Map<String, ByteArray> {

@@ -31,6 +31,7 @@ See [READER.md](READER.md).
 - [x] Sample plugin with demo data (debug builds only)
 - [x] Plugin install (file, link, repository), update, and removal
 - [x] Plugin stores screen with name, website, support, copy and remove; content warnings (Safe, Mixed, 18+)
+- [x] Add stores from GitHub pages and "Add to SoraTome" links; publish your own store from the plugins/ folder
 - [ ] Signed stores
 
 ## M4: Advanced reader

@@ -22,10 +22,9 @@ import io.github.tokyo720022create.soratome.plugin.runtime.loader.FilePluginLoad
 import io.github.tokyo720022create.soratome.plugin.runtime.repository.RepositoryIndex
 import io.github.tokyo720022create.soratome.plugin.runtime.repository.RepositoryIndexParser
 import io.github.tokyo720022create.soratome.plugin.runtime.repository.RepositoryPlugin
+import io.github.tokyo720022create.soratome.plugin.runtime.repository.StoreAddress
 import io.github.tokyo720022create.soratome.plugin.runtime.script.ScriptSourcePlugin
 import java.io.File
-import java.net.MalformedURLException
-import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -86,9 +85,25 @@ class PluginManager(
         PluginPackageReader.read(bytes)
     }
 
-    /** Downloads a plugin package from a link the user typed. */
-    suspend fun downloadFromLink(url: String): PluginPackage = withContext(Dispatchers.IO) {
-        PluginPackageReader.read(PluginDownloader.download(url, PluginPackageReader.MAX_PACKAGE_BYTES))
+    /**
+     * Reads what a link the user pasted points to: a plugin package, or a plugin store.
+     * A GitHub page for a file is turned into its raw address first.
+     */
+    suspend fun inspectLink(input: String): LinkContent = withContext(Dispatchers.IO) {
+        val address = StoreAddress.toRaw(input)
+        val bytes = PluginDownloader.download(address, PluginPackageReader.MAX_PACKAGE_BYTES)
+        if (!PluginPackageReader.looksLikeZip(bytes)) {
+            val text = String(bytes, Charsets.UTF_8)
+            if (text.trimStart().startsWith("{")) {
+                val index = try {
+                    RepositoryIndexParser.parse(text, address)
+                } catch (e: PluginException) {
+                    null
+                }
+                if (index != null) return@withContext LinkContent.Store(address, index)
+            }
+        }
+        LinkContent.Package(PluginPackageReader.read(bytes))
     }
 
     /** Downloads a plugin listed in a store and checks it against the listing. */
@@ -154,20 +169,39 @@ class PluginManager(
     /** Reads a store's index. */
     suspend fun fetchRepository(url: String): RepositoryIndex = withContext(Dispatchers.IO) {
         val bytes = PluginDownloader.download(url, RepositoryIndexParser.MAX_INDEX_BYTES)
+        if (PluginPackageReader.looksLikeZip(bytes)) {
+            throw PluginException(
+                "This link is a plugin package, not a store. Use Installed plugins > Install from link.",
+            )
+        }
         RepositoryIndexParser.parse(String(bytes, Charsets.UTF_8), url)
     }
 
-    /** Checks that [url] is a readable store, then remembers it with its name and links. */
-    suspend fun addRepository(url: String) {
-        val clean = url.trim()
-        try {
-            URL(clean)
-        } catch (e: MalformedURLException) {
-            throw PluginException("This is not a valid link")
+    /**
+     * Finds the store at [input] (a store index link, or a GitHub page that holds one), checks it,
+     * and remembers it with its name and links.
+     */
+    suspend fun addRepository(input: String) {
+        val candidates = StoreAddress.candidates(input)
+        var lastError: PluginException? = null
+        for (address in candidates) {
+            val index = try {
+                fetchRepository(address)
+            } catch (e: PluginException) {
+                lastError = e
+                continue
+            }
+            saveStore(address, index)
+            return
         }
-        if (clean in repositories) throw PluginException("This store is already added")
-        val index = fetchRepository(clean)
-        val updated = stores + infoFrom(clean, index)
+        if (candidates.size == 1 && lastError != null) throw lastError
+        throw PluginException("Could not find a plugin store at this address")
+    }
+
+    /** Remembers a store whose index was already read. */
+    fun saveStore(url: String, index: RepositoryIndex) {
+        if (url in repositories) throw PluginException("This store is already added")
+        val updated = stores + infoFrom(url, index)
         registry.saveStores(updated)
         stores = updated
     }

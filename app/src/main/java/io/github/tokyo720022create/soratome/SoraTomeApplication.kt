@@ -1,6 +1,9 @@
 package io.github.tokyo720022create.soratome
 
 import android.app.Application
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import io.github.tokyo720022create.soratome.data.image.PageImageLoader
 import io.github.tokyo720022create.soratome.data.plugins.PluginManager
 import io.github.tokyo720022create.soratome.data.plugins.PluginPreferences
@@ -27,6 +30,9 @@ class SoraTomeApplication : Application() {
 
     /** Search and selection state of the Browse tab, kept while the user moves between screens. */
     val browseState = BrowseState()
+
+    /** A store address that a link asked the app to add. Shown as a question until answered. */
+    var requestedStoreUrl by mutableStateOf<String?>(null)
 
     /** The chapter list being read. Set before opening the reader. */
     var readerSession: ReaderSession? = null

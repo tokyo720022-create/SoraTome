@@ -39,12 +39,20 @@ sha256sum my-plugin-1.0.0.soraplugin
 Settings > Browse:
 
 - **Plugin stores:** a card for each store you added (name, address, number of plugins) with **Website**, **Support**, **Copy** and **Remove**, a refresh button, and **Add**. Tap a store to see its plugins and install or update them.
-- **Installed plugins:** switch plugins on or off, remove them, **Install from file** (a package on the device) or **Install from link** (an https link to a package), and **Check for updates**.
+- **Installed plugins:** switch plugins on or off, remove them, **Install from file** (a package on the device) or **Install from link** (an https link to a package), and **Check for updates**. If a pasted link turns out to be a store, SoraTome offers to add it as a store. If a file is not a zip, the message says what it is instead (for example a web page or a JSON file).
 - **Allowed content warnings** and **Also apply to installed plugins**: see below.
 
 Before installing or updating, SoraTome shows the plugin's name, version, content warning, where it came from, and the websites it is allowed to contact. Nothing is installed until you confirm.
 
 An installed plugin with the same id as a bundled one (debug builds) replaces it; uninstalling brings the bundled one back. Reading progress is kept when a plugin is removed.
+
+### Ways to add a store
+
+- Paste the link to the store's `index.json` (Plugin stores > Add).
+- Paste a GitHub page: the repository, a folder, or the `index.json` file. SoraTome looks for `index.json` in the repository root and in `plugin-repo/`.
+- Open a link like `soratome://add-store?url=https%3A%2F%2F...`. SoraTome asks before adding.
+
+To host your own store, see [PUBLISHING_A_STORE.md](PUBLISHING_A_STORE.md).
 
 ## Content warnings
 

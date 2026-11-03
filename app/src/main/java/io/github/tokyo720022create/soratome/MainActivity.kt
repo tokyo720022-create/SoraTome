@@ -1,5 +1,6 @@
 package io.github.tokyo720022create.soratome
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.KeyEvent
@@ -23,6 +24,8 @@ import kotlinx.coroutines.withContext
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleStoreLink(intent)
+        addOnNewIntentListener { newIntent -> handleStoreLink(newIntent) }
         setContent {
             MaterialTheme {
                 var showSplash by remember { mutableStateOf(true) }
@@ -46,6 +49,17 @@ class MainActivity : ComponentActivity() {
                     if (splash) SplashScreen() else SoraTomeApp()
                 }
             }
+        }
+    }
+
+    /** A link like soratome://add-store?url=https://... asks to add a plugin store. */
+    private fun handleStoreLink(intent: Intent?) {
+        if (intent == null || intent.action != Intent.ACTION_VIEW) return
+        val data = intent.data ?: return
+        if (data.scheme != "soratome" || data.host != "add-store") return
+        val link = data.getQueryParameter("url") ?: return
+        if (link.startsWith("https://")) {
+            (application as SoraTomeApplication).requestedStoreUrl = link
         }
     }
 
